@@ -1,0 +1,16 @@
+entity_limit.entity_limit.*:
+  type: config_entity
+  label: 'Entity Limit config'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+    limit:
+      type: integer
+      label: 'Limit'
+    uuid:
+      type: string
+
