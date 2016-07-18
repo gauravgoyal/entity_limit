@@ -1,0 +1,4 @@
+services:
+  entity_limit.usage:
+    class: Drupal\entity_limit\EntityLimitUsage
+    arguments: ['@entity.manager', '@current_user', '@config.factory', '@entity.query']

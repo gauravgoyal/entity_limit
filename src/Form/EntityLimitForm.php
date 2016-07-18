@@ -3,7 +3,9 @@
 namespace Drupal\entity_limit\Form;
 
 use Drupal\Core\Entity\EntityForm;
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class EntityLimitForm.
@@ -12,6 +14,26 @@ use Drupal\Core\Form\FormStateInterface;
  */
 class EntityLimitForm extends EntityForm {
 
+  protected $entityManager;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(EntityManagerInterface $entityManager) {
+    $this->entityManager = $entityManager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    // Instantiates this form class.
+    return new static(
+    // Load the service required to construct this class.
+    $container->get('entity.manager')
+    );
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -19,6 +41,7 @@ class EntityLimitForm extends EntityForm {
     $form = parent::form($form, $form_state);
 
     $entity_limit = $this->entity;
+
     $form['label'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Label'),
@@ -43,9 +66,22 @@ class EntityLimitForm extends EntityForm {
       '#title' => $this->t('Limit'),
       '#description' => $this->t("The number of nodes for this limit. Must be an integer greater than 0 or -1 for no limit"),
       '#required' => TRUE,
-      '#default_value' => is_null($entity_limit->get('limit')) ? -1 : $entity_limit->get('limit'),
+      '#default_value' => is_null($entity_limit->get('limit')) ? ENTITYLIMIT_NO_LIMIT : $entity_limit->get('limit'),
     );
 
+    $entity_manager = $this->entityManager->getEntityTypeLabels(TRUE);
+    $content_entities = array_values($entity_manager['Content']);
+    $content_entities_key = array_keys($entity_manager['Content']);
+    $content_entities = array_combine($content_entities_key, $content_entities);
+
+    $form['entities'] = array(
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Select entities'),
+      '#description' => $this->t('Limit will be applied to all selected entities'),
+      '#options' => $content_entities,
+      '#multiple' => TRUE,
+      '#default_value' => !empty($entity_limit->get('entities')) ? $entity_limit->get('entities') : array(),
+    );
     return $form;
   }
 

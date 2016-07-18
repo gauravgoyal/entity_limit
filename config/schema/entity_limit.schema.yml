@@ -11,6 +11,12 @@ entity_limit.entity_limit.*:
     limit:
       type: integer
       label: 'Limit'
+    entities:
+      type: sequence
+      label: 'Entities'
+      sequence:
+        type: string
     uuid:
       type: string
+
 

@@ -23,7 +23,7 @@ use Drupal\entity_limit\EntityLimitInterface;
  *     },
  *   },
  *   config_prefix = "entity_limit",
- *   admin_permission = "administer site configuration",
+ *   admin_permission = "administer entity_limit settings",
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",

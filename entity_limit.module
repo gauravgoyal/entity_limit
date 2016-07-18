@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Contains hooks and other things module.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+
+const ENTITYLIMIT_NO_LIMIT = -1;
+
+/**
+ * Implements hook_entity_access().
+ */
+function entity_limit_entity_create_access(AccountInterface $account, array $context, $entity_bundle) {
+  // No limit restriction for user id = 1.
+  if ($account->id() == 1) {
+    return AccessResult::allowed();
+  }
+  $entity_type_id = $context['entity_type_id'];
+  $result = \Drupal::service('entity_limit.usage')->entityLimitViolationCheck($entity_type_id);
+  return ($result) ? AccessResult::forbidden() : AccessResult::allowed();
+}
