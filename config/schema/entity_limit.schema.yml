@@ -15,7 +15,7 @@ entity_limit.entity_limit.*:
       type: sequence
       label: 'Entities'
       sequence:
-        type: string
+        type: entity_limit.entities.[%key]
     uuid:
       type: string
 
@@ -28,3 +28,13 @@ entity_limit.settings:
       sequence:
         type: string
 
+entity_limit.entities.*:
+  type: config_object
+  lable: Enable
+  mapping:
+    enable:
+      type: integer
+    bundles:
+      type: sequence
+      sequence:
+        type: string

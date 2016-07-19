@@ -39,9 +39,9 @@ class EntityLimitForm extends EntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
+    $form['#tree'] = TRUE;
 
     $entity_limit = $this->entity;
-
     $form['label'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Label'),
@@ -69,19 +69,31 @@ class EntityLimitForm extends EntityForm {
       '#default_value' => is_null($entity_limit->get('limit')) ? ENTITYLIMIT_NO_LIMIT : $entity_limit->get('limit'),
     );
 
-    $entity_manager = $this->entityManager->getEntityTypeLabels(TRUE);
-    $content_entities = array_values($entity_manager['Content']);
-    $content_entities_key = array_keys($entity_manager['Content']);
-    $content_entities = array_combine($content_entities_key, $content_entities);
+    $allowed_entities = $this->config('entity_limit.settings')->get('allowed_entities');
 
-    $form['entities'] = array(
-      '#type' => 'checkboxes',
-      '#title' => $this->t('Limit Content Entities'),
-      '#description' => $this->t('Limit will be applied to all selected entities'),
-      '#options' => $content_entities,
-      '#multiple' => TRUE,
-      '#default_value' => !empty($entity_limit->get('entities')) ? $entity_limit->get('entities') : array(),
-    );
+    foreach ($allowed_entities as $entity_type => $name) {
+      $form['entities'][$entity_type] = array(
+        '#type' => 'details',
+        '#title' => $this->t('Limit @name entities', array('@name' => $name)),
+      );
+      $form['entities'][$entity_type]['enable'] = array(
+        '#type' => 'checkbox',
+        '#title' => $this->t('Enable Limit'),
+      );
+      $bundles = $this->entityManager->getBundleInfo($entity_type);
+      if (!empty($bundles)) {
+        $options = array();
+        foreach ($bundles as $machine_name => $bundle) {
+          $options[$machine_name] = $bundle['label'];
+        }
+        $form['entities'][$entity_type]['bundles'] = array(
+          '#type' => 'checkboxes',
+          '#title' => $this->t('Select Bundles'),
+          '#description' => $this->t('Select bundles of this entity to apply limit'),
+          '#options' => $options,
+        );
+      }
+    }
     return $form;
   }
 
@@ -90,8 +102,15 @@ class EntityLimitForm extends EntityForm {
    */
   public function save(array $form, FormStateInterface $form_state) {
     $entity_limit = $this->entity;
+    $entities = $entity_limit->get('entities');
+    foreach ($entities as $bundle => $value) {
+      if ($value['enable'] == 0) {
+        unset($entities[$bundle]);
+        continue;
+      }
+    }
+    $entity_limit->set('entities', $entities);
     $status = $entity_limit->save();
-
     switch ($status) {
       case SAVED_NEW:
         drupal_set_message($this->t('Created the %label Entity Limit.', [
