@@ -76,7 +76,7 @@ class EntityLimitForm extends EntityForm {
 
     $form['entities'] = array(
       '#type' => 'checkboxes',
-      '#title' => $this->t('Select entities'),
+      '#title' => $this->t('Limit Content Entities'),
       '#description' => $this->t('Limit will be applied to all selected entities'),
       '#options' => $content_entities,
       '#multiple' => TRUE,

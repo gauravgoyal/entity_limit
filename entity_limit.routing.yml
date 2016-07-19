@@ -1,0 +1,7 @@
+entity.entity_limit.settings:
+  path: '/admin/config/content/entity_limit'
+  defaults:
+    _form: 'Drupal\entity_limit\Form\EntityLimitSettingsForm'
+    _title: 'Entity Limit settings'
+  requirements:
+    _permission: 'administer entity_limit settings'

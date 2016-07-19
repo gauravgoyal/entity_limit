@@ -16,7 +16,8 @@ use Drupal\entity_limit\EntityLimitInterface;
  *     "form" = {
  *       "add" = "Drupal\entity_limit\Form\EntityLimitForm",
  *       "edit" = "Drupal\entity_limit\Form\EntityLimitForm",
- *       "delete" = "Drupal\entity_limit\Form\EntityLimitDeleteForm"
+ *       "delete" = "Drupal\entity_limit\Form\EntityLimitDeleteForm",
+ *       "settings" = "Drupal\entity_limit\Form\EntityLimitSettingsForm"
  *     },
  *     "route_provider" = {
  *       "html" = "Drupal\entity_limit\EntityLimitHtmlRouteProvider",
@@ -34,7 +35,8 @@ use Drupal\entity_limit\EntityLimitInterface;
  *     "add-form" = "/admin/structure/entity_limit/add",
  *     "edit-form" = "/admin/structure/entity_limit/{entity_limit}/edit",
  *     "delete-form" = "/admin/structure/entity_limit/{entity_limit}/delete",
- *     "collection" = "/admin/structure/entity_limit"
+ *     "collection" = "/admin/structure/entity_limit",
+ *     "settings" = "/admin/config/content/entity_limit"
  *   }
  * )
  */

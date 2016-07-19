@@ -3,3 +3,5 @@ description: 'Limit allowed content to create for  entities'
 package: 'Entity Limit'
 type: module
 core: 8.x
+
+configure: entity_limit.settings

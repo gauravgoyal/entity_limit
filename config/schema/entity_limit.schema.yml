@@ -19,4 +19,12 @@ entity_limit.entity_limit.*:
     uuid:
       type: string
 
+entity_limit.settings:
+  type: config_object
+  label: Entity Limit settings
+  mapping:
+    allowed_entities:
+      type: sequence
+      sequence:
+        type: string
 
