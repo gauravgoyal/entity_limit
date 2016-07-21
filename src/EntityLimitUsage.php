@@ -47,17 +47,20 @@ class EntityLimitUsage {
    */
   public function entityLimitViolationCheck($entity_type_id, $bundle = NULL) {
     $configurations = $this->loadAllConfigurations();
-    $violations = TRUE;
-    foreach ($configurations as $config) {
-      $entities = $config->get('entities');
-      if ($entities[$entity_type_id] = $entity_type_id) {
-        $limit = $config->get('limit');
-        if ($limit == ENTITYLIMIT_NO_LIMIT) {
-          $violations = FALSE;
-        }
-        $entityCount = $this->getContent($entity_type_id, $bundle);
-        if ($entityCount <= $limit) {
-          $violations = FALSE;
+    $violations = FALSE;
+    if (!empty($configurations)) {
+      foreach ($configurations as $config) {
+        $entities = $config->get('entities.' . $entity_type_id);
+        if ($entities['enable'] == 1 && in_array($bundle, $entities['bundles'])) {
+          $limit = $config->get('limit');
+          if ($limit == ENTITYLIMIT_NO_LIMIT) {
+            $violations = FALSE;
+            break;
+          }
+          $entityCount = $this->getContent($entity_type_id, $bundle);
+          if ($entityCount > $limit) {
+            $violations = TRUE;
+          }
         }
       }
     }

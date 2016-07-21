@@ -70,7 +70,7 @@ class EntityLimitForm extends EntityForm {
     );
 
     $allowed_entities = $this->config('entity_limit.settings')->get('allowed_entities');
-
+    $saved_entities = $entity_limit->get('entities');
     foreach ($allowed_entities as $entity_type => $name) {
       $form['entities'][$entity_type] = array(
         '#type' => 'details',
@@ -79,6 +79,7 @@ class EntityLimitForm extends EntityForm {
       $form['entities'][$entity_type]['enable'] = array(
         '#type' => 'checkbox',
         '#title' => $this->t('Enable Limit'),
+        '#default_value' => !empty($saved_entities[$entity_type]['enable']) ? $saved_entities[$entity_type]['enable'] : 0,
       );
       $bundles = $this->entityManager->getBundleInfo($entity_type);
       if (!empty($bundles)) {
@@ -91,6 +92,7 @@ class EntityLimitForm extends EntityForm {
           '#title' => $this->t('Select Bundles'),
           '#description' => $this->t('Select bundles of this entity to apply limit'),
           '#options' => $options,
+          '#default_value' => !empty($saved_entities[$entity_type]['bundles']) ? $saved_entities[$entity_type]['bundles'] : array(),
         );
       }
     }
