@@ -60,6 +60,7 @@ class EntityLimitUsage {
           $entityCount = $this->getContent($entity_type_id, $bundle);
           if ($entityCount > $limit) {
             $violations = TRUE;
+            break;
           }
         }
       }
