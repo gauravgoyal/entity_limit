@@ -22,6 +22,10 @@ class EntityLimitUsage {
 
   private $configList;
 
+  private $entityTypeId;
+
+  private $bundle;
+
   /**
    * Construct entity_limit usage.
    *
@@ -43,26 +47,111 @@ class EntityLimitUsage {
   }
 
   /**
+   * Check whether the bundle is included in the configuration.
+   *
+   * @param array $config
+   *   Configuration for entity limit..
+   *
+   * @return bool
+   *   Status of the bundle.
+   */
+  private function isBundleLimited($config) {
+    $limited_bundles = $config->get('entities.' . $this->entityTypeId . '.bundles');
+    if (!empty($this->bundle) && in_array($this->bundle, $limited_bundles)) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
+   * Check whether the entity given in the configuration is enabled or not.
+   *
+   * @param array $config
+   *   Configuraiton..
+   *
+   * @return bool
+   *   Status.
+   */
+  private function isEntityTypeLimitEnabled($config) {
+    $enabled = $config->get('entities.' . $this->entityTypeId . '.enable');
+    if ($enabled == ENTITYLIMIT_ENABLED) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
+   * All enabled limit configuration for entity type.
+   *
+   * @param array $configurations
+   *   All entitylimit configurations.
+   *
+   * @return array
+   *   All Enabled configurations.
+   */
+  protected function getEnabledEntityTypeLimits($configurations) {
+    $enabledConfigs = array();
+    foreach ($configurations as $config) {
+      if ($this->isEntityTypeLimitEnabled($config) && $this->isBundleLimited($config)) {
+        $enabledConfigs[] = $config;
+      }
+    }
+    return $enabledConfigs;
+  }
+
+  /**
+   * Get configuration limit.
+   *
+   * @param array $config
+   *   Configuration..
+   *
+   * @return int
+   *    Limit
+   */
+  protected function getLimit($config) {
+    $limit = $config->get('limit');
+    return $limit;
+  }
+
+  /**
+   * Get maximum limit from the configurations.
+   *
+   * @param array $configurations
+   *   All loaded configuration for entity limit..
+   *
+   * @return int
+   *   Maximum limit.
+   */
+  protected function getMaximumLimit($configurations) {
+    $enabledConfigs = $this->getEnabledEntityTypeLimits($configurations);
+    $maxLimit = 0;
+    foreach ($enabledConfigs as $config) {
+      $limit = $this->getLimit($config);
+      if ($limit == ENTITYLIMIT_NO_LIMIT) {
+        $maxLimit = ENTITYLIMIT_NO_LIMIT;
+        break;
+      }
+      $maxLimit = ($limit > $maxLimit) ? $limit : $maxLimit;
+    }
+    return $maxLimit;
+  }
+
+  /**
    * Check entityLimit violations.
    */
-  public function entityLimitViolationCheck($entity_type_id, $bundle = NULL) {
+  public function entityLimitViolationCheck($entityTypeId, $bundle = NULL) {
+    $this->entityTypeId = $entityTypeId;
+    if ($bundle != NULL) {
+      $this->bundle = $bundle;
+    }
+
     $configurations = $this->loadAllConfigurations();
     $violations = FALSE;
     if (!empty($configurations)) {
-      foreach ($configurations as $config) {
-        $entities = $config->get('entities.' . $entity_type_id);
-        if ($entities['enable'] == 1 && in_array($bundle, $entities['bundles'])) {
-          $limit = $config->get('limit');
-          if ($limit == ENTITYLIMIT_NO_LIMIT) {
-            $violations = FALSE;
-            break;
-          }
-          $entityCount = $this->getContent($entity_type_id, $bundle);
-          if ($entityCount > $limit) {
-            $violations = TRUE;
-            break;
-          }
-        }
+      $maxLimit = $this->getMaximumLimit($configurations);
+      $count = $this->getContent();
+      if ($count >= $maxLimit) {
+        $violations = TRUE;
       }
     }
     return $violations;
@@ -79,26 +168,24 @@ class EntityLimitUsage {
   /**
    * Get all content for entity and bundle.
    */
-  public function getContent($entity_type_id, $bundle = NULL) {
-    $conditions = !is_null($bundle) ? array('type' => $bundle) : array();
-    $result = $this->buildQuery($entity_type_id, $conditions);
+  public function getContent() {
+    $conditions = !is_null($this->bundle) ? array('type' => $this->bundle) : array();
+    $result = (int) $this->buildQuery($conditions);
     return $result;
   }
 
   /**
    * Build query for given conditions.
    *
-   * @param string $entity_type_id
-   *   Entity Type name.
    * @param array $conditions
    *   Condition in the format of array('key' => 'value').
    *
    * @return array | NULL
    *   Result for the above query.
    */
-  private function buildQuery($entity_type_id, $conditions = array()) {
+  private function buildQuery($conditions = array()) {
     // Use the factory to create a query object for node entities.
-    $query = $this->entityQuery->get($entity_type_id);
+    $query = $this->entityQuery->get($this->entityTypeId);
     if (!empty($conditions)) {
       foreach ($conditions as $key => $value) {
         if (is_array($value)) {

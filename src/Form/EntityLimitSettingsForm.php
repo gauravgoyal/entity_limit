@@ -76,6 +76,20 @@ class EntityLimitSettingsForm extends ConfigFormBase {
       '#options' => $content_entities,
       '#default_value' => array_keys($config->get('allowed_entities')),
     );
+
+    $form['limit_by_users'] = array(
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable Limit by Users'),
+      '#description' => $this->t('Check if you want to add limit per users'),
+      '#default_value' => $config->get('limit_by_users'),
+    );
+
+    $form['limit_by_roles'] = array(
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable Limit by Roles'),
+      '#description' => $this->t('Check if you want to add limit per role'),
+      '#default_value' => $config->get('limit_by_roles'),
+    );
     return $form;
   }
 
@@ -87,9 +101,12 @@ class EntityLimitSettingsForm extends ConfigFormBase {
     $config = $this->config($config);
     $allowed_entities = $form_state->getValue('allowed_entities');
     $allowed_entities = array_flip($allowed_entities);
+    $config->set('limit_by_roles', $form_state->getValue('limit_by_roles'))->save();
+    $config->set('limit_by_users', $form_state->getValue('limit_by_users'))->save();
     unset($allowed_entities[0]);
     $allowed_entities = array_intersect_key($this->getContentEntities(), $allowed_entities);
     $config->set('allowed_entities', $allowed_entities)->save();
+
     return parent::submitForm($form, $form_state);
   }
 

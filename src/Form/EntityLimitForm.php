@@ -69,6 +69,38 @@ class EntityLimitForm extends EntityForm {
       '#default_value' => is_null($entity_limit->get('limit')) ? ENTITYLIMIT_NO_LIMIT : $entity_limit->get('limit'),
     );
 
+    $limit_by_roles = $this->config('entity_limit.settings')->get('limit_by_roles');
+    if ($limit_by_roles == 1) {
+      $roles = user_roles(TRUE);
+      $allowed_roles = array();
+      foreach ($roles as $role) {
+        $allowed_roles[$role->id()] = $role->label();
+      }
+      $form['limit_by_roles'] = array(
+        '#type' => 'select',
+        '#title' => $this->t('Select Roles to Limit'),
+        '#description' => $this->t('Limit will be applied to these roles'),
+        '#options' => $allowed_roles,
+        '#multiple' => TRUE,
+      );
+    }
+
+    $limit_by_roles = $this->config('entity_limit.settings')->get('limit_by_roles');
+    if ($limit_by_roles == 1) {
+      $roles = user_roles(TRUE);
+      $allowed_roles = array();
+      foreach ($roles as $role) {
+        $allowed_roles[$role->id()] = $role->label();
+      }
+      $form['limit_by_users'] = array(
+        '#type' => 'entity_autocomplete',
+        '#target_type' => 'user',
+        '#title' => $this->t('Select users to apply limit'),
+        '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
+        '#multiple' => TRUE,
+      );
+    }
+
     $allowed_entities = $this->config('entity_limit.settings')->get('allowed_entities');
     $saved_entities = $entity_limit->get('entities');
     foreach ($allowed_entities as $entity_type => $name) {
@@ -81,6 +113,7 @@ class EntityLimitForm extends EntityForm {
         '#title' => $this->t('Enable Limit'),
         '#default_value' => !empty($saved_entities[$entity_type]['enable']) ? $saved_entities[$entity_type]['enable'] : 0,
       );
+
       $bundles = $this->entityManager->getBundleInfo($entity_type);
       if (!empty($bundles)) {
         $options = array();
