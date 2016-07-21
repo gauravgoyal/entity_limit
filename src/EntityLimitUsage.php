@@ -20,11 +20,7 @@ class EntityLimitUsage {
 
   protected $entityQuery;
 
-  private $configList;
-
-  private $entityTypeId;
-
-  private $bundle;
+  public $configList;
 
   /**
    * Construct entity_limit usage.
@@ -55,9 +51,9 @@ class EntityLimitUsage {
    * @return bool
    *   Status of the bundle.
    */
-  private function isBundleLimited($config) {
-    $limited_bundles = $config->get('entities.' . $this->entityTypeId . '.bundles');
-    if (!empty($this->bundle) && in_array($this->bundle, $limited_bundles)) {
+  public function isBundleLimited($config, $entityTypeId, $bundle) {
+    $limited_bundles = $config->get('entities.' . $entityTypeId . '.bundles');
+    if (!empty($bundle) && in_array($bundle, $limited_bundles)) {
       return TRUE;
     }
     return FALSE;
@@ -72,8 +68,8 @@ class EntityLimitUsage {
    * @return bool
    *   Status.
    */
-  private function isEntityTypeLimitEnabled($config) {
-    $enabled = $config->get('entities.' . $this->entityTypeId . '.enable');
+  public function isEntityTypeLimitEnabled($config, $entityTypeId) {
+    $enabled = $config->get('entities.' . $entityTypeId . '.enable');
     if ($enabled == ENTITYLIMIT_ENABLED) {
       return TRUE;
     }
@@ -131,10 +127,10 @@ class EntityLimitUsage {
    * @return array
    *   Enabled configuration for current entity type and bundle.
    */
-  private function getEntityEnabledLimitConfigs($configurations) {
+  public function getEntityEnabledLimitConfigs($configurations, $entityTypeId, $bundle) {
     $enabledConfigs = array();
     foreach ($configurations as $config) {
-      if ($this->isEntityTypeLimitEnabled($config) && $this->isBundleLimited($config)) {
+      if ($this->isEntityTypeLimitEnabled($config, $entityTypeId) && $this->isBundleLimited($config, $entityTypeId, $bundle)) {
         $enabledConfigs[] = $config;
       }
     }
@@ -150,7 +146,7 @@ class EntityLimitUsage {
    * @return array
    *   All Enabled configurations.
    */
-  protected function getEntityTypeLimits($configurations) {
+  public function getEntityTypeLimits($configurations, $entityTypeId, $bundle = NULL) {
     $enabledConfigs = array();
     // Check if we have some configuration for current user..
     $currentUserConfigurations = $this->getCurrentUserEntityLimits($configurations);
@@ -164,7 +160,7 @@ class EntityLimitUsage {
         $configurations = $currentRoleConfigurations;
       }
     }
-    $enabledConfigs = $this->getEntityEnabledLimitConfigs($configurations);
+    $enabledConfigs = $this->getEntityEnabledLimitConfigs($configurations, $entityTypeId, $bundle);
     return $enabledConfigs;
   }
 
@@ -185,14 +181,13 @@ class EntityLimitUsage {
   /**
    * Get maximum limit from the configurations.
    *
-   * @param array $configurations
+   * @param array $enabledConfigs
    *   All loaded configuration for entity limit..
    *
    * @return int
    *   Maximum limit.
    */
-  protected function getMaximumLimit($configurations) {
-    $enabledConfigs = $this->getEntityTypeLimits($configurations);
+  public function getMaximumLimit($enabledConfigs) {
     $maxLimit = 0;
     foreach ($enabledConfigs as $config) {
       $limit = $this->getLimit($config);
@@ -209,18 +204,16 @@ class EntityLimitUsage {
    * Check entityLimit violations.
    */
   public function entityLimitViolationCheck($entityTypeId, $bundle = NULL) {
-    $this->entityTypeId = $entityTypeId;
-    if ($bundle != NULL) {
-      $this->bundle = $bundle;
-    }
     $configurations = $this->loadAllConfigurations();
     $violations = FALSE;
     if (!empty($configurations)) {
-      $configurations = $this->getEntityTypeLimits($configurations);
+      $configurations = $this->getEntityTypeLimits($configurations, $entityTypeId, $bundle);
       $maxLimit = $this->getMaximumLimit($configurations);
-      $count = $this->getContent();
-      if ($maxLimit != ENTITYLIMIT_NO_LIMIT && $count >= $maxLimit) {
-        $violations = TRUE;
+      if ($maxLimit != ENTITYLIMIT_NO_LIMIT) {
+        $count = $this->getContent($entityTypeId, $bundle);
+        if ($count >= $maxLimit) {
+          $violations = TRUE;
+        }
       }
     }
     return $violations;
@@ -237,24 +230,26 @@ class EntityLimitUsage {
   /**
    * Get all content for entity and bundle.
    */
-  public function getContent() {
-    $conditions = !is_null($this->bundle) ? array('type' => $this->bundle) : array();
-    $result = (int) $this->buildQuery($conditions);
+  public function getContent($entityTypeId, $bundle) {
+    $conditions = !is_null($bundle) ? array('type' => $bundle) : array();
+    $result = (int) $this->buildQuery($entityTypeId, $conditions);
     return $result;
   }
 
   /**
    * Build query for given conditions.
    *
+   * @param string $entityTypeId
+   *   Entity type id.
    * @param array $conditions
    *   Condition in the format of array('key' => 'value').
    *
    * @return array | NULL
    *   Result for the above query.
    */
-  private function buildQuery($conditions = array()) {
+  public function buildQuery($entityTypeId, $conditions = array()) {
     // Use the factory to create a query object for node entities.
-    $query = $this->entityQuery->get($this->entityTypeId);
+    $query = $this->entityQuery->get($entityTypeId);
     if (!empty($conditions)) {
       foreach ($conditions as $key => $value) {
         if (is_array($value)) {
