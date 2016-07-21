@@ -5,6 +5,7 @@ namespace Drupal\entity_limit\Form;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -82,22 +83,19 @@ class EntityLimitForm extends EntityForm {
         '#description' => $this->t('Limit will be applied to these roles'),
         '#options' => $allowed_roles,
         '#multiple' => TRUE,
+        '#default_value' => $entity_limit->get('limit_by_roles'),
       );
     }
 
-    $limit_by_roles = $this->config('entity_limit.settings')->get('limit_by_roles');
-    if ($limit_by_roles == 1) {
-      $roles = user_roles(TRUE);
-      $allowed_roles = array();
-      foreach ($roles as $role) {
-        $allowed_roles[$role->id()] = $role->label();
-      }
+    $limit_by_users = $this->config('entity_limit.settings')->get('limit_by_users');
+    if ($limit_by_users == 1) {
       $form['limit_by_users'] = array(
         '#type' => 'entity_autocomplete',
         '#target_type' => 'user',
         '#title' => $this->t('Select users to apply limit'),
         '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
-        '#multiple' => TRUE,
+        '#default_value' => !is_null($entity_limit->get('limit_by_users')) ? User::loadMultiple($entity_limit->get('limit_by_users')) : array(),
+        '#tags' => TRUE,
       );
     }
 
@@ -137,6 +135,7 @@ class EntityLimitForm extends EntityForm {
    */
   public function save(array $form, FormStateInterface $form_state) {
     $entity_limit = $this->entity;
+    // Save entities in the desired format.
     $entities = $entity_limit->get('entities');
     foreach ($entities as $bundle => $value) {
       if ($value['enable'] == 0) {
@@ -145,6 +144,15 @@ class EntityLimitForm extends EntityForm {
       }
     }
     $entity_limit->set('entities', $entities);
+
+    // Save users in the desired format.
+    $selected_users = ($entity_limit->get('limit_by_users'));
+    $users = array();
+    foreach ($selected_users as $user) {
+      $uid = $user['target_id'];
+      $users[$uid] = $uid;
+    }
+    $entity_limit->set('limit_by_users', $users);
     $status = $entity_limit->save();
     switch ($status) {
       case SAVED_NEW:
