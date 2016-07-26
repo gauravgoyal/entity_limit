@@ -36,7 +36,7 @@ abstract class EntityLimitViolationPluginBase extends PluginBase implements Enti
    */
   public function setConfiguration(array $configuration) {
     if (isset($configuration['settings'])) {
-      $this->settings = (array) $configuration['settings'];
+      $this->settings = $configuration['settings'];
     }
     return $this;
   }
