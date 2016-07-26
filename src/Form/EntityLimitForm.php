@@ -5,7 +5,6 @@ namespace Drupal\entity_limit\Form;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -43,6 +42,7 @@ class EntityLimitForm extends EntityForm {
     $form['#tree'] = TRUE;
 
     $entity_limit = $this->entity;
+
     $form['label'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Label'),
@@ -70,33 +70,21 @@ class EntityLimitForm extends EntityForm {
       '#default_value' => is_null($entity_limit->get('limit')) ? ENTITYLIMIT_NO_LIMIT : $entity_limit->get('limit'),
     );
 
-    $limit_by_roles = $this->config('entity_limit.settings')->get('limit_by_roles');
-    if ($limit_by_roles == 1) {
-      $roles = user_roles(TRUE);
-      $allowed_roles = array();
-      foreach ($roles as $role) {
-        $allowed_roles[$role->id()] = $role->label();
-      }
-      $form['limit_by_roles'] = array(
-        '#type' => 'select',
-        '#title' => $this->t('Select Roles to Limit'),
-        '#description' => $this->t('Limit will be applied to these roles'),
-        '#options' => $allowed_roles,
-        '#multiple' => TRUE,
-        '#default_value' => $entity_limit->get('limit_by_roles'),
+    // Call all plugins .
+    $violations = $entity_limit->violations();
+    foreach ($violations as $plugin_id => $violation) {
+      $settings_form = array(
+        '#parents' => array('violations', $plugin_id),
+        '#tree' => TRUE,
       );
-    }
-
-    $limit_by_users = $this->config('entity_limit.settings')->get('limit_by_users');
-    if ($limit_by_users == 1) {
-      $form['limit_by_users'] = array(
-        '#type' => 'entity_autocomplete',
-        '#target_type' => 'user',
-        '#title' => $this->t('Select users to apply limit'),
-        '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
-        '#default_value' => !is_null($entity_limit->get('limit_by_users')) ? User::loadMultiple($entity_limit->get('limit_by_users')) : array(),
-        '#tags' => TRUE,
+      $settings_form = $violation->settingsForm($settings_form, $form_state);
+      $form['violations'][$plugin_id] = array(
+        '#type' => 'details',
+        '#title' => $violation->getLabel(),
+        '#open' => TRUE,
+        '#parents' => array('violations', $plugin_id),
       );
+      $form['violations'][$plugin_id] += $settings_form;
     }
 
     $allowed_entities = $this->config('entity_limit.settings')->get('allowed_entities');
@@ -135,6 +123,12 @@ class EntityLimitForm extends EntityForm {
    */
   public function save(array $form, FormStateInterface $form_state) {
     $entity_limit = $this->entity;
+    $violations = $form_state->getValue('violations');
+    foreach ($violations as $plugin_id => $configuration) {
+      $entity_limit->setViolationConfig($plugin_id, $configuration);
+    }
+
+    // Call plugin configurations.
     // Save entities in the desired format.
     $entities = $entity_limit->get('entities');
     foreach ($entities as $bundle => $value) {
@@ -144,15 +138,6 @@ class EntityLimitForm extends EntityForm {
       }
     }
     $entity_limit->set('entities', $entities);
-
-    // Save users in the desired format.
-    $selected_users = ($entity_limit->get('limit_by_users'));
-    $users = array();
-    foreach ($selected_users as $user) {
-      $uid = $user['target_id'];
-      $users[$uid] = $uid;
-    }
-    $entity_limit->set('limit_by_users', $users);
     $status = $entity_limit->save();
     switch ($status) {
       case SAVED_NEW:

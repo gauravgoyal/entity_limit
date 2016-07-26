@@ -11,16 +11,10 @@ entity_limit.entity_limit.*:
     limit:
       type: integer
       label: 'Limit'
-    limit_by_roles:
+    violations:
       type: sequence
-      lable: 'Limited Roles'
       sequence:
-        type: string
-    limit_by_users:
-      type: sequence
-      lable: 'Limited Roles'
-      sequence:
-        type: string
+        type: entity_limit.violations.[%key]
     entities:
       type: sequence
       label: 'Entities'
@@ -33,12 +27,6 @@ entity_limit.settings:
   type: config_object
   label: Entity Limit settings
   mapping:
-    limit_by_users:
-      type: integer
-      lable: 'Limit by Users'
-    limit_by_roles:
-      type: integer
-      label: 'Limit by Roles'
     allowed_entities:
       type: sequence
       sequence:
@@ -51,6 +39,14 @@ entity_limit.entities.*:
     enable:
       type: integer
     bundles:
+      type: sequence
+      sequence:
+        type: string
+
+entity_limit.violations.*:
+  type: config_object
+  mapping:
+    settings:
       type: sequence
       sequence:
         type: string
