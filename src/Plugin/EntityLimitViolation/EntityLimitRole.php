@@ -44,4 +44,11 @@ class EntityLimitRole extends EntityLimitViolationPluginBase {
     parent::setConfiguration($configuration);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function processViolation() {
+    return $this->settings;
+  }
+
 }

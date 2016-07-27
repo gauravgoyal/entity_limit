@@ -10,6 +10,7 @@ use Drupal\Core\Session\AccountInterface;
 
 const ENTITYLIMIT_NO_LIMIT = -1;
 const ENTITYLIMIT_ENABLED = 1;
+const ENTITYLIMIT_NEUTRAL = 1;
 
 /**
  * Implements hook_entity_access().

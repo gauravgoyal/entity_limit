@@ -25,4 +25,12 @@ interface EntityLimitViolationPluginInterface extends ConfigurablePluginInterfac
    */
   public function settingsForm(array $form, FormStateInterface $form_state);
 
+  /**
+   * Violation is processed.
+   *
+   * @return int
+   *   Limit for current violation.
+   */
+  public function processViolation();
+
 }

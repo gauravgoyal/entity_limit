@@ -45,4 +45,12 @@ class EntityLimitUser extends EntityLimitViolationPluginBase {
     parent::setConfiguration($configuration);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function processViolation() {
+    dpm($this->settings);
+    return $this->settings;
+  }
+
 }

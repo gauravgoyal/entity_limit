@@ -132,7 +132,7 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
    * {@inheritdoc}
    */
   public function getPluginCollections() {
-    return array('violations' => $this->violations());
+    return $this->violations();
   }
 
   /**

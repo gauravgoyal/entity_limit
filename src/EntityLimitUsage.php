@@ -29,28 +29,37 @@ class EntityLimitUsage {
   }
 
   /**
-   *
+   * Check entity limit violations.
    */
   public function entityLimitViolationCheck($entityTypeId, $bundle = NULL) {
-    dpm($this->applicableLimits($entityTypeId, $bundle));
-    dpm($this->violationManger->getDefinitions());
+    foreach ($this->applicableLimits($entityTypeId, $bundle) as $entity_limit) {
+      foreach ($entity_limit->getPluginCollections() as $violation) {
+        $violation->processViolation();
+      }
+    }
   }
 
   /**
+   * Get all applicable limits for the given entity type and bundle.
    *
+   * @return array
+   *   Applicable limits for entity type and bundle.
    */
   public function applicableLimits($entityTypeId, $bundle = NULL) {
     $applicableLimits = array();
-    foreach ($this->enabledViolations() as $key => $entity_limit) {
+    foreach ($this->enabledViolations() as $entity_limit) {
       if ($entity_limit->isLimitApplicable($entityTypeId, $bundle)) {
-        $applicableLimits[$key] = $entity_limit;
+        $applicableLimits[$entity_limit->id()] = $entity_limit;
       }
     }
     return $applicableLimits;
   }
 
   /**
+   * Get all enabled entity limit violation plugins.
    *
+   * @return array
+   *   All enabled violations.
    */
   public function enabledViolations() {
     return $this->violationStorage->loadByProperties(['status' => TRUE]);
