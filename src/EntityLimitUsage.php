@@ -39,6 +39,7 @@ class EntityLimitUsage {
     }
     ksort($priorityList);
 
+    // Get priority limit using plugins for current entity & bundle.
     foreach ($priorityList as $plugin_id) {
       if (isset($applicableLimits[$plugin_id])) {
         $applicableLimits = $applicableLimits[$plugin_id];
@@ -46,6 +47,7 @@ class EntityLimitUsage {
       }
     }
 
+    // Compare limit from final applicable limits.
     foreach ($applicableLimits as $value) {
       $violation = $value['violation'];
       $entityLimit = $value['entity'];
