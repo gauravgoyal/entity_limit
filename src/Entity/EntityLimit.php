@@ -95,23 +95,38 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
   }
 
   /**
-   * Entity limit is applicable to the given entity or not.
+   * Check limit is applicable to entity or not.
    *
    * @param string $entityTypeId
    *   Entity type which needs to be checked.
-   * @param string $bundle
-   *   Bundle name to check.
    *
    * @return bool
-   *   Limit applicable or not for given entity & bundle.
+   *   Return whether limit is applicable to this entity or not.
    */
-  public function isLimitApplicable($entityTypeId, $bundle = NULL) {
+  public function isLimitApplicableToEntity($entityTypeId) {
     $applicable = FALSE;
     foreach ($this->getEntities() as $entityType => $value) {
       if ($entityType == $entityTypeId && $value['enable'] == 1) {
-        if (is_null($bundle) || !in_array($bundle, $value['bundles'])) {
-          $applicable = TRUE;
-        }
+        $applicable = TRUE;
+      }
+    }
+    return $applicable;
+  }
+
+  /**
+   * Check limit is applicable for bundle.
+   *
+   * @param string $bundle
+   *   Bundle type which needs to be checked.
+   *
+   * @return bool
+   *   Return applicablility status.
+   */
+  public function isLimitApplicableToBundle($bundle) {
+    $applicable = FALSE;
+    foreach ($this->getEntities() as $value) {
+      if (!isset($value['bundles']) || in_array($bundle, $value['bundles'])) {
+        $applicable = TRUE;
       }
     }
     return $applicable;
@@ -132,7 +147,7 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
    * {@inheritdoc}
    */
   public function getPluginCollections() {
-    return $this->violations();
+    return array('violations' => $this->violations());
   }
 
   /**
@@ -144,6 +159,32 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
       $this->violationCollection->setInstanceConfiguration($instance_id, $configuration);
     }
     return $this;
+  }
+
+  /**
+   *
+   */
+  public function getQuery($entityTypeId, $bundle) {
+    $query = NULL;
+    if ($this->isLimitApplicableToEntity($entityTypeId)) {
+      $query = \Drupal::entityQuery($entityTypeId);
+      if ($this->isLimitApplicableToBundle($bundle)) {
+        $query->condition('type', $bundle);
+      }
+    }
+    return $query;
+  }
+
+  /**
+   *
+   */
+  public function getBundles($entityTypeId) {
+    $bundles = array();
+    $entities = $this->getEntities();
+    if (!empty($entities[$entityTypeId]['bundles'])) {
+      $bundles = $entities[$entityTypeId]['bundles'];
+    }
+    return $bundles;
   }
 
 }

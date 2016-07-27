@@ -32,11 +32,25 @@ class EntityLimitUsage {
    * Check entity limit violations.
    */
   public function entityLimitViolationCheck($entityTypeId, $bundle = NULL) {
-    foreach ($this->applicableLimits($entityTypeId, $bundle) as $entity_limit) {
-      foreach ($entity_limit->getPluginCollections() as $violation) {
-        $violation->processViolation();
+    $violations = FALSE;
+    $applicableLimits = $this->applicableLimits($entityTypeId, $bundle);
+    foreach ($this->violationManger->getDefinitions() as $plugin_id => $definition) {
+      dpm($definition);
+    }
+    if (!empty($applicableLimits)) {
+      foreach ($applicableLimits as $entity_limit) {
+        $limit = $entity_limit->getLimit();
+        $violations = $entity_limit->getPluginCollections();
+        $violations = $violations['violations'];
+        foreach ($violations as $violation) {
+          if ($violation->processViolation() == ENTITYLIMIT_APPLY) {
+            $query = $entity_limit->getQuery($entityTypeId, $bundle);
+            $violation->addConditions($query);
+          }
+        }
       }
     }
+    return $violations;
   }
 
   /**
@@ -45,11 +59,13 @@ class EntityLimitUsage {
    * @return array
    *   Applicable limits for entity type and bundle.
    */
-  public function applicableLimits($entityTypeId, $bundle = NULL) {
+  public function applicableLimits($entityTypeId, $bundle) {
     $applicableLimits = array();
     foreach ($this->enabledViolations() as $entity_limit) {
-      if ($entity_limit->isLimitApplicable($entityTypeId, $bundle)) {
-        $applicableLimits[$entity_limit->id()] = $entity_limit;
+      if ($entity_limit->isLimitApplicableToEntity($entityTypeId)) {
+        if (empty($entity_limit->getBundles($entityTypeId)) || $entity_limit->isLimitApplicableToBundle($bundle)) {
+          $applicableLimits[$entity_limit->id()] = $entity_limit;
+        }
       }
     }
     return $applicableLimits;

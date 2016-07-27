@@ -131,10 +131,20 @@ class EntityLimitForm extends EntityForm {
     // Call plugin configurations.
     // Save entities in the desired format.
     $entities = $entity_limit->get('entities');
-    foreach ($entities as $bundle => $value) {
+    foreach ($entities as $entityType => $value) {
       if ($value['enable'] == 0) {
-        unset($entities[$bundle]);
+        unset($entities[$entityType]);
         continue;
+      }
+      else {
+        $bundles = array_flip($value['bundles']);
+        unset($bundles[0]);
+        if (!empty($bundles)) {
+          $entities[$entityType]['bundles'] = $bundles;
+        }
+        else {
+          unset($entities[$entityType]['bundles']);
+        }
       }
     }
     $entity_limit->set('entities', $entities);

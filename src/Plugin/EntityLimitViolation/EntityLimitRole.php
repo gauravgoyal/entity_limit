@@ -48,7 +48,26 @@ class EntityLimitRole extends EntityLimitViolationPluginBase {
    * {@inheritdoc}
    */
   public function processViolation() {
-    return $this->settings;
+    $user = \Drupal::currentUser();
+    $roles = $user->getRoles();
+    if (array_intersect($this->settings, $roles)) {
+      return ENTITYLIMIT_APPLY;
+    }
+    return ENTITYLIMIT_NEUTRAL;
+  }
+
+  /**
+   *
+   */
+  public function addConditions(&$query) {
+    // dpm($this->settings);.
+  }
+
+  /**
+   *
+   */
+  public function getNames() {
+    return 'role';
   }
 
 }

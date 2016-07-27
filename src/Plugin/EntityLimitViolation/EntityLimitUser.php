@@ -49,8 +49,26 @@ class EntityLimitUser extends EntityLimitViolationPluginBase {
    * {@inheritdoc}
    */
   public function processViolation() {
-    dpm($this->settings);
-    return $this->settings;
+    $user = \Drupal::currentUser();
+    if (in_array($user->id(), $this->settings)) {
+      return ENTITYLIMIT_APPLY;
+    }
+    return ENTITYLIMIT_NEUTRAL;
+  }
+
+  /**
+   *
+   */
+  public function addConditions(&$query) {
+    $user = \Drupal::currentUser();
+    $query->condition('uid', $user->id());
+  }
+
+  /**
+   *
+   */
+  public function getNames() {
+    return 'user';
   }
 
 }
