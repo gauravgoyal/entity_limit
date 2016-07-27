@@ -29,6 +29,13 @@ class EntityLimitViolation extends Plugin {
   public $title;
 
   /**
+   * A default weight for the filter in new text formats.
+   *
+   * @var int
+   */
+  public $priority;
+
+  /**
    * The default settings for the filter.
    *
    * @var array (optional)

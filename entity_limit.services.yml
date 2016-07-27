@@ -1,7 +1,7 @@
 services:
-  entity_limit.usage:
-    class: Drupal\entity_limit\EntityLimitUsage
-    arguments: ['@entity.manager', '@current_user', '@config.factory', '@entity.query']
   plugin.manager.entity_limit_violations:
     class: Drupal\entity_limit\EntityLimitViolationManager
     parent: default_plugin_manager
+  entity_limit.usage:
+    class: Drupal\entity_limit\EntityLimitUsage
+    arguments: ['@entity.manager', '@plugin.manager.entity_limit_violations']

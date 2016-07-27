@@ -23,6 +23,13 @@ abstract class EntityLimitViolationPluginBase extends PluginBase implements Enti
   public $settings = array();
 
   /**
+   * An associative array containing the configured settings of this filter.
+   *
+   * @var array
+   */
+  public $priority;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
@@ -38,6 +45,9 @@ abstract class EntityLimitViolationPluginBase extends PluginBase implements Enti
     if (isset($configuration['settings'])) {
       $this->settings = $configuration['settings'];
     }
+    if (isset($configuration['priority'])) {
+      $this->priority = $configuration['priority'];
+    }
     return $this;
   }
 
@@ -47,6 +57,7 @@ abstract class EntityLimitViolationPluginBase extends PluginBase implements Enti
   public function getConfiguration() {
     return array(
       'settings' => $this->settings,
+      'priority' => $this->priority,
     );
   }
 
@@ -56,6 +67,7 @@ abstract class EntityLimitViolationPluginBase extends PluginBase implements Enti
   public function defaultConfiguration() {
     return array(
       'settings' => $this->pluginDefinition['settings'],
+      'priority' => $this->pluginDefinition['priority'],
     );
   }
 

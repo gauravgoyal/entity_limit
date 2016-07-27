@@ -84,25 +84,37 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
   }
 
   /**
-   * Get Enable configuration.
+   * Get entities from entity limit configurations if any.
    *
-   * @return int
-   *   Enabled value for this configuration.
+   * @return array
+   *   Array of entities associated with this config.
    */
-  public function getEnable($entityTypeId) {
-    $enable = $this->get('entities.' . $entityTypeId . '.enable');
-    return $enable;
+  public function getEntities() {
+    $entities = $this->get('entities');
+    return $entities;
   }
 
   /**
-   * Get bundles from entity limit configurations if any.
+   * Entity limit is applicable to the given entity or not.
    *
-   * @return array
-   *   Array of bundles associated with this config.
+   * @param string $entityTypeId
+   *   Entity type which needs to be checked.
+   * @param string $bundle
+   *   Bundle name to check.
+   *
+   * @return bool
+   *   Limit applicable or not for given entity & bundle.
    */
-  public function getBundles($entityTypeId) {
-    $bundles = $this->get('entities.' . $entityTypeId . '.bundles');
-    return $bundles;
+  public function isLimitApplicable($entityTypeId, $bundle = NULL) {
+    $applicable = FALSE;
+    foreach ($this->getEntities() as $entityType => $value) {
+      if ($entityType == $entityTypeId && $value['enable'] == 1) {
+        if (is_null($bundle) || !in_array($bundle, $value['bundles'])) {
+          $applicable = TRUE;
+        }
+      }
+    }
+    return $applicable;
   }
 
   /**
@@ -111,7 +123,7 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
   public function violations($instance_id = NULL) {
     if (!isset($this->violationCollection)) {
       $this->violationCollection = new EntityLimitPluginCollection(\Drupal::service('plugin.manager.entity_limit_violations'), $this->violations);
-      $this->violationCollection->getAll();
+      $this->violationCollection->sort();
     }
     return $this->violationCollection;
   }

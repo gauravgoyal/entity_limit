@@ -12,6 +12,7 @@ use Drupal\entity_limit\Plugin\EntityLimitViolationPluginBase;
  *   id = "entity_limit_by_role",
  *   title = @Translation("Limit Entities per role"),
  *   settings = {},
+ *   priority = 1,
  * )
  */
 class EntityLimitRole extends EntityLimitViolationPluginBase {

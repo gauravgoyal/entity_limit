@@ -39,6 +39,28 @@ class EntityLimitPluginCollection extends DefaultLazyPluginCollection {
   /**
    * {@inheritdoc}
    */
+  public function sort() {
+    $this->getAll();
+    return parent::sort();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function sortHelper($aID, $bID) {
+    $a = $this->get($aID);
+    $b = $this->get($bID);
+
+    if ($a->priority != $b->priority) {
+      return $a->priority < $b->priority ? -1 : 1;
+    }
+
+    return parent::sortHelper($aID, $bID);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function initializePlugin($instance_id) {
     $configuration = $this->manager->getDefinition($instance_id);
     // Merge the actual configuration into the default configuration.

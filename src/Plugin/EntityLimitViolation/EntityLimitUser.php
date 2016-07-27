@@ -13,6 +13,7 @@ use Drupal\user\Entity\User;
  *   id = "entity_limit_by_user",
  *   title = @Translation("Limit Entities per user"),
  *   settings = {},
+ *   priority = 0,
  * )
  */
 class EntityLimitUser extends EntityLimitViolationPluginBase {
