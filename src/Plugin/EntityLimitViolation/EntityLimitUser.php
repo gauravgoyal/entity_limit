@@ -64,11 +64,4 @@ class EntityLimitUser extends EntityLimitViolationPluginBase {
     $query->condition('uid', $user->id());
   }
 
-  /**
-   *
-   */
-  public function getNames() {
-    return 'user';
-  }
-
 }
