@@ -98,7 +98,12 @@ abstract class EntityLimitViolationPluginBase extends PluginBase implements Enti
    * {@inheritdoc}
    */
   public function processViolation() {
-    return $this->settings;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function addConditions(&$query) {
   }
 
 }

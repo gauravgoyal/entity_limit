@@ -33,4 +33,15 @@ interface EntityLimitViolationPluginInterface extends ConfigurablePluginInterfac
    */
   public function processViolation();
 
+  /**
+   * Add condition to execute while checking limits.
+   *
+   * @param \Drupal\Core\Entity\Query\QueryInterface $query
+   *   SQL query to get the count.
+   *
+   * @return int
+   *   Limit for current violation.
+   */
+  public function addConditions(&$query);
+
 }

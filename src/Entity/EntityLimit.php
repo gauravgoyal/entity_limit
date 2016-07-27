@@ -125,7 +125,7 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
   public function isLimitApplicableToBundle($bundle) {
     $applicable = FALSE;
     foreach ($this->getEntities() as $value) {
-      if (!isset($value['bundles']) || in_array($bundle, $value['bundles'])) {
+      if (in_array($bundle, $value['bundles'])) {
         $applicable = TRUE;
       }
     }
@@ -162,7 +162,15 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
   }
 
   /**
+   * Build query to get the count for current scenerio.
    *
+   * @param string $entityTypeId
+   *   EntityType to check.
+   * @param string $bundle
+   *   Bundle of above entity type.
+   *
+   * @return object
+   *   Object of queryinterface,
    */
   public function getQuery($entityTypeId, $bundle) {
     $query = NULL;
@@ -176,7 +184,13 @@ class EntityLimit extends ConfigEntityBase implements EntityLimitInterface, Enti
   }
 
   /**
+   * Get all enabled bundles for current entity limit.
    *
+   * @param string $entityTypeId
+   *   Entitytype to return bundles for.
+   *
+   * @return array
+   *   All enabled bundles for this entity.
    */
   public function getBundles($entityTypeId) {
     $bundles = array();

@@ -31,7 +31,6 @@ class EntityLimitRole extends EntityLimitViolationPluginBase {
       '#title' => $this->t('Select Roles to Limit'),
       '#description' => $this->t('Limit will be applied to these roles'),
       '#options' => $allowed_roles,
-      '#multiple' => TRUE,
       '#default_value' => $this->settings,
     );
     return $form;
@@ -57,17 +56,21 @@ class EntityLimitRole extends EntityLimitViolationPluginBase {
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function addConditions(&$query) {
-    // dpm($this->settings);.
-  }
-
-  /**
-   *
-   */
-  public function getNames() {
-    return 'role';
+    $user = \Drupal::currentUser();
+    $roles = $user->getRoles();
+    $roles = array_intersect($this->settings, $roles);
+    if (in_array('authenticated', $roles)) {
+      $query->condition('uid', 0, '!=');
+    }
+    else {
+      $role_users = \Drupal::service('entity_type.manager')->getStorage('user')->getQuery();
+      $role_users->condition('roles', 'authenticated');
+      $uids = $role_users->execute();
+      $query->condition('uid', $uids, 'IN');
+    }
   }
 
 }

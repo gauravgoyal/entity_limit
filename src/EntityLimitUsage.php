@@ -16,6 +16,8 @@ class EntityLimitUsage {
 
   protected $violationManager;
 
+  protected $applicableLimits;
+
   /**
    * Construct entity_limit usage.
    *
@@ -33,29 +35,32 @@ class EntityLimitUsage {
    */
   public function entityLimitViolationCheck($entityTypeId, $bundle = NULL) {
     $access = FALSE;
-    $applicableLimits = $this->applicableLimits($entityTypeId, $bundle);
-    foreach ($this->violationManager->getDefinitions() as $key => $definition) {
-      $priorityList[$definition['priority']] = $key;
-    }
-    ksort($priorityList);
+    $this->applicableLimits($entityTypeId, $bundle);
 
-    // Get priority limit using plugins for current entity & bundle.
-    foreach ($priorityList as $plugin_id) {
-      if (isset($applicableLimits[$plugin_id])) {
-        $applicableLimits = $applicableLimits[$plugin_id];
-        break;
-      }
+    if (!empty($this->applicableLimits)) {
+      $this->priorityList();
+      $access = $this->compareLimits($entityTypeId, $bundle);
     }
+    return $access;
+  }
 
+  /**
+   * Check access to current entity with applicable limits.
+   *
+   * @return bool
+   *   Access for the given entity.
+   */
+  public function compareLimits($entityTypeId, $bundle) {
     // Compare limit from final applicable limits.
-    foreach ($applicableLimits as $value) {
-      $violation = $value['violation'];
+    foreach ($this->applicableLimits as $value) {
       $entityLimit = $value['entity'];
       $limit = $entityLimit->getLimit();
       $query = $entityLimit->getQuery($entityTypeId, $bundle);
-      $violation->addConditions($query);
+      if (!empty($value['violation'])) {
+        $value['violation']->addConditions($query);
+      }
       $count = $query->count()->execute();
-      if ($count >= $limit) {
+      if ($count >= $limit && $limit != ENTITYLIMIT_NO_LIMIT) {
         $access = TRUE;
         break;
       }
@@ -64,26 +69,48 @@ class EntityLimitUsage {
   }
 
   /**
+   * Get final limit configuration which will be checked for entity and bundle.
+   */
+  protected function priorityList() {
+    foreach ($this->violationManager->getDefinitions() as $key => $definition) {
+      $priorityList[$definition['priority']] = $key;
+    }
+    ksort($priorityList);
+
+    // Get priority limit using plugins for current entity & bundle.
+    foreach ($priorityList as $plugin_id) {
+      if (isset($this->applicableLimits[$plugin_id])) {
+        $this->applicableLimits = $this->applicableLimits[$plugin_id];
+        break;
+      }
+    }
+
+    // If no plugins are selected then  get limit with no_violation key.
+    if (array_key_exists('no_violation', $this->applicableLimits)) {
+      $this->applicableLimits = array_pop($this->applicableLimits);
+    }
+    return $this->applicableLimits;
+  }
+
+  /**
    * Get all applicable limits for the given entity type and bundle.
-   *
-   * @return array
-   *   Applicable limits for entity type and bundle.
    */
   public function applicableLimits($entityTypeId, $bundle) {
-    $applicableLimits = array();
     foreach ($this->enabledViolations() as $entity_limit_name => $entity_limit) {
       if ($entity_limit->isLimitApplicableToEntity($entityTypeId)) {
         if (empty($entity_limit->getBundles($entityTypeId)) || $entity_limit->isLimitApplicableToBundle($bundle)) {
           foreach ($entity_limit->violations() as $key => $violation) {
             if ($violation->processViolation() == ENTITYLIMIT_APPLY) {
-              $applicableLimits[$key][$entity_limit_name]['violation'] = $violation;
-              $applicableLimits[$key][$entity_limit_name]['entity'] = $entity_limit;
+              $this->applicableLimits[$key][$entity_limit_name]['violation'] = $violation;
+              $this->applicableLimits[$key][$entity_limit_name]['entity'] = $entity_limit;
+            }
+            else {
+              $this->applicableLimits['no_violation'][$entity_limit_name]['entity'] = $entity_limit;
             }
           }
         }
       }
     }
-    return $applicableLimits;
   }
 
   /**
