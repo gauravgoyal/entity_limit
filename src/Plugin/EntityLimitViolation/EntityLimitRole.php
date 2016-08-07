@@ -40,6 +40,9 @@ class EntityLimitRole extends EntityLimitViolationPluginBase {
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration) {
+    if (!empty($configuration['settings']) && !is_array($configuration['settings'])) {
+      $configuration['settings'] = array($configuration['settings']);
+    }
     parent::setConfiguration($configuration);
   }
 

@@ -37,9 +37,11 @@ class EntityLimitUser extends EntityLimitViolationPluginBase {
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration) {
-    foreach ($configuration['settings'] as $key => $value) {
-      if (!empty($value['target_id'])) {
-        $configuration['settings'][$key] = $value['target_id'];
+    if (!empty($configuration['settings'])) {
+      foreach ($configuration['settings'] as $key => $value) {
+        if (!empty($value['target_id'])) {
+          $configuration['settings'][$key] = $value['target_id'];
+        }
       }
     }
     parent::setConfiguration($configuration);

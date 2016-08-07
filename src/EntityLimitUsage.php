@@ -51,6 +51,7 @@ class EntityLimitUsage {
    *   Access for the given entity.
    */
   public function compareLimits($entityTypeId, $bundle) {
+    $access = FALSE;
     // Compare limit from final applicable limits.
     foreach ($this->applicableLimits as $value) {
       $entityLimit = $value['entity'];
