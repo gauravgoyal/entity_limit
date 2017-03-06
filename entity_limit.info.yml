@@ -1,7 +1,5 @@
 name: 'Entity Limit'
-description: 'Limit allowed content to create for  entities'
+description: 'Allow administrators to restrict the number of entities that may be created based on different conditions.'
 package: 'Entity Limit'
 type: module
 core: 8.x
-
-configure: entity.entity_limit.settings
