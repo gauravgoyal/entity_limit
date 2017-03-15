@@ -3,4 +3,3 @@ entity.entity_limit.add_form:
   title: 'Add Entity Limit'
   appears_on:
     - entity.entity_limit.collection
-

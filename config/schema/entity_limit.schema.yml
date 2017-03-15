@@ -1,4 +1,4 @@
-entity_limit.entity_limit.*:
+entity.entity_limit.*:
   type: config_entity
   label: 'Entity Limit config'
   mapping:
@@ -8,33 +8,27 @@ entity_limit.entity_limit.*:
     label:
       type: label
       label: 'Label'
-    limit:
-      type: integer
-      label: 'Limit'
-    violations:
+    plug-in_id:
+      type: string
+      label: 'Plug-in ID'
+    entity_type:
+      type: string
+      label: 'Entity Type'
+    entity_bundle:
+      type: sequence
+      label: 'Entity Bundles'
+      sequence:
+        type: entity_limit.bundle.[%key]
+    limits:
       type: sequence
       sequence:
-        type: entity_limit.violations.[%key]
-    entities:
-      type: sequence
-      label: 'Entities'
-      sequence:
-        type: entity_limit.entities.[%key]
+        type: entity_limit.limit.[%key]
     uuid:
       type: string
 
-entity_limit.settings:
+entity.entity_limit.bundle.*:
   type: config_object
-  label: Entity Limit settings
-  mapping:
-    allowed_entities:
-      type: sequence
-      sequence:
-        type: string
-
-entity_limit.entities.*:
-  type: config_object
-  lable: Enable
+  label: 'Entity Bundles'
   mapping:
     enable:
       type: integer
@@ -43,10 +37,13 @@ entity_limit.entities.*:
       sequence:
         type: string
 
-entity_limit.violations.*:
+entity.limit.*:
   type: config_object
+  lable: Enable
   mapping:
-    settings:
-      type: sequence
-      sequence:
-        type: string
+    id:
+      type: integer
+      label: 'User id or Role id'
+    limit:
+      type: integer
+      label: 'Limit'

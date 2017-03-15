@@ -16,15 +16,16 @@ use Drupal\entity_limit\EntityLimitPluginCollection;
  *   handlers = {
  *     "list_builder" = "Drupal\entity_limit\EntityLimitListBuilder",
  *     "form" = {
- *       "add" = "Drupal\entity_limit\Form\EntityLimitForm",
- *       "edit" = "Drupal\entity_limit\Form\EntityLimitForm",
+ *       "add" = "Drupal\entity_limit\Form\Multistep\EntityLimitSettingsForm",
+ *       "addLimits" = "Drupal\entity_limit\Form\Multistep\EntityLimitAddLimitForm",
+ *       "edit" = "Drupal\entity_limit\Form\Multistep\EntityLimitSettingsForm",
  *       "delete" = "Drupal\entity_limit\Form\EntityLimitDeleteForm",
  *     },
  *     "route_provider" = {
  *       "html" = "Drupal\entity_limit\EntityLimitHtmlRouteProvider",
  *     },
  *   },
- *   config_prefix = "entity_limit",
+ *   config_prefix = "entity",
  *   admin_permission = "administer entity_limit settings",
  *   entity_keys = {
  *     "id" = "id",
@@ -34,6 +35,7 @@ use Drupal\entity_limit\EntityLimitPluginCollection;
  *   links = {
  *     "canonical" = "/admin/structure/entity_limit/{entity_limit}",
  *     "add-form" = "/admin/structure/entity_limit/add",
+ *     "addLimits-form" = "/admin/structure/entity_limit/add/limits",
  *     "edit-form" = "/admin/structure/entity_limit/{entity_limit}/edit",
  *     "delete-form" = "/admin/structure/entity_limit/{entity_limit}/delete",
  *     "collection" = "/admin/structure/entity_limit"
