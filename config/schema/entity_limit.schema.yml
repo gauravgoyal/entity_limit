@@ -20,31 +20,18 @@ entity_limit.entity_limit.*:
       sequence:
         type: string
     limits:
-      type: entity_limit.limits.[%parent.plugin]
+      type: sequence
+      sequence:
+        type: entity_limit.limits.[%parent.plugin]
     uuid:
       type: string
 
 entity_limit.limits.*:
-  type: sequence
-  sequence:
-    type: string
-
-entity_limit.limits.user:
   type: mapping
   mapping:
-    uid:
+    id:
       type: string
       label: 'User Id'
-    limit:
-      type: string
-      label: 'Limit'
-
-entity_limit.limits.role:
-  type: mapping
-  mapping:
-    rid:
-      type: string
-      label: 'Role Id'
     limit:
       type: string
       label: 'Limit'
