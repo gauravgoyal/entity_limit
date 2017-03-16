@@ -25,8 +25,8 @@ use Drupal\entity_limit\EntityLimitPluginCollection;
  *       "html" = "Drupal\entity_limit\EntityLimitHtmlRouteProvider",
  *     },
  *   },
- *   config_prefix = "entity",
- *   admin_permission = "administer entity_limit settings",
+ *   config_prefix = "entity_limit",
+ *   admin_permission = "administer entity limit settings",
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",

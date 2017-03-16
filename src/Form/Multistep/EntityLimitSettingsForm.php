@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\entity_limit\Form\Multistep\EntityLimitSettingsForm.
- */
 
 namespace Drupal\entity_limit\Form\Multistep;
 
@@ -11,6 +7,9 @@ use Drupal\Core\Render\Element\Checkboxes;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
 
+/**
+ *
+ */
 class EntityLimitSettingsForm extends EntityLimitFormBase {
 
   /**
@@ -48,8 +47,12 @@ class EntityLimitSettingsForm extends EntityLimitFormBase {
       '#disabled' => !$entity_limit->isNew(),
     );
 
+    /**
+     * @TODO Need to find a way to load all the available plugins.
+     */
     $plugins = ['user' => t('User'), 'role' => t('Role')];
-    $form['plugins'] = array(
+
+    $form['plugin'] = array(
       '#type' => 'radios',
       '#title' => $this->t('Select plug-in'),
       '#options' => $plugins,
@@ -89,6 +92,10 @@ class EntityLimitSettingsForm extends EntityLimitFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $form_state->setRedirect('entity.entity_limit.add_limits_form');
   }
+
+  /**
+   *
+   */
   public function entityBundleCallback(array &$form, FormStateInterface &$form_state) {
     $entity_type = $form_state->getValue('entity_type');
     $bundles = $this->entityManager->getBundleInfo($entity_type);
@@ -112,4 +119,5 @@ class EntityLimitSettingsForm extends EntityLimitFormBase {
     $response->addCommand(new ReplaceCommand('#bundles', $form['entity_bundles']));
     return $response;
   }
+
 }
