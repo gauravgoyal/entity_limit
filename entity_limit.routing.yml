@@ -28,3 +28,11 @@ entity.entity_limit.delete_form:
     _title: 'Delete'
   requirements:
     _entity_access: 'administer entity limit'
+
+entity.add_limits:
+  path: '/admin/structure/types/manage/{entity_limit}/limits'
+  defaults:
+    _entity_form: 'entity_limit.manage'
+    _title: 'Manage Limits'
+    requirements:
+      _entity_access: 'manage entity limits'

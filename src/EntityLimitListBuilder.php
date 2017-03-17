@@ -34,6 +34,16 @@ class EntityLimitListBuilder extends ConfigEntityListBuilder {
    */
   public function getDefaultOperations(EntityInterface $entity) {
     $operations = parent::getDefaultOperations($entity);
+    $account = \Drupal::currentUser();
+    if ($account->hasPermission('manage entity limits')) {
+      $operations['manage-limits'] = array(
+        'title' => t('Manage limits'),
+        'weight' => 15,
+        'url' => Url::fromRoute("entity.add_limits", array(
+          $entity->getEntityTypeId() => $entity->id(),
+        )),
+      );
+    }
     if (isset($operations['edit'])) {
       $operations['edit']['weight'] = 30;
     }
