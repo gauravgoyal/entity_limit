@@ -1,5 +1,5 @@
-entity.entity_limit.add_form:
-  route_name: 'entity.entity_limit.add_form'
+entity.entity_limit_add:
+  route_name: entity.entity_limit_add
   title: 'Add Entity Limit'
   appears_on:
     - entity.entity_limit.collection
