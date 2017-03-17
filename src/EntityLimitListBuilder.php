@@ -4,6 +4,7 @@ namespace Drupal\entity_limit;
 
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
 
 /**
  * Provides a listing of Entity Limit entities.
@@ -26,6 +27,28 @@ class EntityLimitListBuilder extends ConfigEntityListBuilder {
     $row['id'] = $entity->id();
     // You probably want a few more properties here...
     return $row + parent::buildRow($entity);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDefaultOperations(EntityInterface $entity) {
+    $operations = parent::getDefaultOperations($entity);
+    if (isset($operations['edit'])) {
+      $operations['edit']['weight'] = 30;
+    }
+    return $operations;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function render() {
+    $build = parent::render();
+    $build['table']['#empty'] = $this->t('No entity limits available. <a href=":link">Add entity limit</a>.', [
+      ':link' => Url::fromRoute('entity.entity_limit_add')->toString()
+    ]);
+    return $build;
   }
 
 }
