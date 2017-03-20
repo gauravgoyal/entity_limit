@@ -15,7 +15,8 @@ use Drupal\entity_limit\EntityLimitInterface;
  *     "form" = {
  *       "add" = "Drupal\entity_limit\Form\EntityLimitAddForm",
  *       "edit" = "Drupal\entity_limit\Form\EntityLimitAddForm",
- *       "delete" = "Drupal\entity_limit\Form\EntityLimitDeleteConfirm",
+ *       "delete" = "Drupal\entity_limit\Form\EntityLimitDeleteForm",
+ *       "manage" = "Drupal\entity_limit\Form\EntityLimitAddLimitForm",
  *     },
  *     "list_builder" = "Drupal\entity_limit\EntityLimitListBuilder",
  *   },
@@ -24,12 +25,12 @@ use Drupal\entity_limit\EntityLimitInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",
- *     "uuid" = "uuid"
  *   },
  *   links = {
- *     "edit-form" = "/admin/structure/entity_limit/manage/{entity_limit}",
- *     "delete-form" = "/admin/structure/entity_limit/manage/{entity_limit}/delete",
- *     "collection" = "/admin/structure/entity_limit",
+ *     "edit-form" = "/admin/structure/entity_limit/edit/{entity_limit}",
+ *     "delete-form" = "/admin/structure/entity_limit/delete/{entity_limit}",
+ *     "manage-form" = "/admin/structure/entity_limit/manage/{entity_limit}",
+ *     "collection" = "/admin/structure/entity_limit"
  *   }
  * )
  */

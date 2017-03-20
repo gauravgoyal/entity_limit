@@ -39,7 +39,7 @@ class EntityLimitListBuilder extends ConfigEntityListBuilder {
       $operations['manage-limits'] = array(
         'title' => t('Manage limits'),
         'weight' => 15,
-        'url' => Url::fromRoute("entity.add_limits", array(
+        'url' => Url::fromRoute("entity.entity_limit.manage_form", array(
           $entity->getEntityTypeId() => $entity->id(),
         )),
       );
@@ -56,7 +56,7 @@ class EntityLimitListBuilder extends ConfigEntityListBuilder {
   public function render() {
     $build = parent::render();
     $build['table']['#empty'] = $this->t('No entity limits available. <a href=":link">Add entity limit</a>.', [
-      ':link' => Url::fromRoute('entity.entity_limit_add')->toString()
+      ':link' => Url::fromRoute('entity.entity_limit.add')->toString()
     ]);
     return $build;
   }

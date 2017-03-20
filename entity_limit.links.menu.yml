@@ -1,5 +1,5 @@
 # Entity Limit menu items definition
-entity_limit.entity_limit.collection:
+entity.entity_limit_collection:
   title: 'Entity limits'
   description: 'Create and manage entity limits settings & related limits.'
   parent: system.admin_structure
