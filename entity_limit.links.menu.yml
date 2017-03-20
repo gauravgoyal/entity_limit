@@ -1,8 +1,7 @@
 # Entity Limit menu items definition
-entity.entity_limit.collection:
-  title: 'Entity Limit'
-  route_name: entity.entity_limit.collection
-  description: 'List Entity Limit (bundles)'
+entity.entity_limit_collection:
+  title: 'Entity limits'
+  description: 'Create and manage entity limits settings & related limits.'
   parent: system.admin_structure
+  route_name: entity.entity_limit.collection
   weight: 99
-

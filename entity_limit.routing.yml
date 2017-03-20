@@ -2,31 +2,37 @@ entity.entity_limit.collection:
   path: '/admin/structure/entity_limit'
   defaults:
     _entity_list: 'entity_limit'
-    _title: 'Entity limit configuration'
+    _title: 'Entity limits'
   requirements:
-    _permission: 'administer entity limit settings'
+    _permission: 'administer entity limit'
 
-entity.entity_limit.add_limits_form:
-  path: '/admin/structure/entity_limit/add/limits'
+entity.entity_limit.add:
+  path: '/admin/structure/entity_limit/add'
   defaults:
-    _entity_form: 'entity_limit.addLimits'
+    _entity_form: 'entity_limit.add'
     _title: 'Add entity limit'
   requirements:
-    _permission: 'administer entity limit settings'
+    _permission: 'administer entity limit'
 
 entity.entity_limit.edit_form:
-  path: '/admin/structure/entity_limit/{entity_limit}'
+  path: '/admin/structure/entity_limit/edit/{entity_limit}'
   defaults:
     _entity_form: 'entity_limit.edit'
-    _title: 'Edit entity limit'
   requirements:
-    _permission: 'administer entity limit settings'
+    _permission: 'administer entity limit'
 
 entity.entity_limit.delete_form:
-  path: '/admin/structure/entity_limit/{entity_limit}/delete'
+  path: '/admin/structure/entity_limit/delete/{entity_limit}'
   defaults:
     _entity_form: 'entity_limit.delete'
-    _title: 'Delete entity limit'
+    _title: 'Delete'
   requirements:
-    _permission: 'administer entity limit settings'
+    _permission: 'administer entity limit'
 
+entity.entity_limit.manage_form:
+  path: '/admin/structure/entity_limit/manage/{entity_limit}'
+  defaults:
+    _entity_form: 'entity_limit.manage'
+    _title: 'Manage Limits'
+  requirements:
+    _permission: 'administer entity limit'

@@ -31,7 +31,7 @@ entity_limit.limits.*:
   mapping:
     id:
       type: string
-      label: 'User Id'
+      label: 'User id or Role id'
     limit:
       type: string
       label: 'Limit'
