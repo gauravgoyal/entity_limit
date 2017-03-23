@@ -9,7 +9,7 @@ use Drupal\Component\Annotation\Plugin;
  *
  * @Annotation
  */
-class EntityLimitViolation extends Plugin {
+class EntityLimit extends Plugin {
   /**
    * The plugin ID.
    *
@@ -27,19 +27,5 @@ class EntityLimitViolation extends Plugin {
    * @var \Drupal\Core\Annotation\Translation
    */
   public $title;
-
-  /**
-   * A default weight for the filter in new text formats.
-   *
-   * @var int
-   */
-  public $priority;
-
-  /**
-   * The default settings for the filter.
-   *
-   * @var array (optional)
-   */
-  public $settings = array();
 
 }

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\entity_limit\Form\Multistep\EntityLimitAddLimitForm.
- */
 
 namespace Drupal\entity_limit\Form;
 
@@ -10,8 +6,11 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Url;
+use Drupal\Component\Plugin\PluginManagerInterface;
 
+/**
+ * Manage limit for for entity limits.
+ */
 class EntityLimitAddLimitForm extends EntityForm {
 
   /**
@@ -22,13 +21,21 @@ class EntityLimitAddLimitForm extends EntityForm {
   protected $entityManager;
 
   /**
+   * The entity manager.
+   *
+   * @var \Drupal\Component\Plugin\PluginManagerInterface
+   */
+  protected $pluginManager;
+
+  /**
    * Constructs the NodeTypeForm object.
    *
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The entity manager.
    */
-  public function __construct(EntityManagerInterface $entity_manager) {
+  public function __construct(EntityManagerInterface $entity_manager, PluginManagerInterface $plugin_manager) {
     $this->entityManager = $entity_manager;
+    $this->pluginManager = $plugin_manager;
   }
 
   /**
@@ -36,17 +43,21 @@ class EntityLimitAddLimitForm extends EntityForm {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.manager')
+      $container->get('entity.manager'),
+      $container->get('plugin.manager.entity_limit')
     );
   }
 
   /**
-   * {@inheritdoc}.
+   * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
     $entity_limit = $this->entity;
+    $selected_plugin = $entity_limit->getPlugin();
+    $plugin = $this->pluginManager->createInstance($selected_plugin, ['of' => 'configuration values']);
     $form = parent::form($form, $form_state);
-
+    $form = $plugin->buildConfigurationForm($form, $form_state);
     return $form;
   }
+
 }
