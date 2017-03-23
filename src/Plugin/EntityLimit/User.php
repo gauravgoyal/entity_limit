@@ -3,20 +3,18 @@
 namespace Drupal\entity_limit\Plugin\EntityLimitViolation;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\entity_limit\Plugin\EntityLimitViolationPluginBase;
+use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
 use Drupal\user\Entity\User;
 
 /**
  * Provides a plugin to limit entities per user.
  *
- * @EntityLimitViolation(
- *   id = "entity_limit_by_user",
- *   title = @Translation("Limit Entities per user"),
- *   settings = {},
- *   priority = 0,
+ * @EntityLimit(
+ *   id = "user",
+ *   title = @Translation("User"),
  * )
  */
-class EntityLimitUser extends EntityLimitViolationPluginBase {
+class User extends EntityLimitPluginBase {
 
   /**
    * {@inheritdoc}

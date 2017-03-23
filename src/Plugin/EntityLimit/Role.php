@@ -1,21 +1,19 @@
 <?php
 
-namespace Drupal\entity_limit\Plugin\EntityLimitViolation;
+namespace Drupal\entity_limit\Plugin\EntityLimit;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\entity_limit\Plugin\EntityLimitViolationPluginBase;
+use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
 
 /**
  * Provides a plugin to limit entities per role.
  *
- * @EntityLimitViolation(
- *   id = "entity_limit_by_role",
- *   title = @Translation("Limit Entities per role"),
- *   settings = {},
- *   priority = 1,
+ * @EntityLimit(
+ *   id = "role",
+ *   title = @Translation("Role"),
  * )
  */
-class EntityLimitRole extends EntityLimitViolationPluginBase {
+class Role extends EntityLimitPluginBase {
 
   /**
    * {@inheritdoc}

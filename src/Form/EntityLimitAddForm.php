@@ -2,15 +2,15 @@
 
 namespace Drupal\entity_limit\Form;
 
-
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Component\Plugin\PluginManagerInterface;
 
 /**
- *
+ * Configuration form for entity limit.
  */
 class EntityLimitAddForm extends EntityForm {
 
@@ -22,13 +22,23 @@ class EntityLimitAddForm extends EntityForm {
   protected $entityManager;
 
   /**
+   * The entity manager.
+   *
+   * @var \Drupal\Component\Plugin\PluginManagerInterface
+   */
+  protected $pluginManager;
+
+  /**
    * Constructs the NodeTypeForm object.
    *
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The entity manager.
+   * @param \Drupal\Component\Plugin\PluginManagerInterface $plugin_manager
+   *   The Plugin Manager.
    */
-  public function __construct(EntityManagerInterface $entity_manager) {
+  public function __construct(EntityManagerInterface $entity_manager, PluginManagerInterface $plugin_manager) {
     $this->entityManager = $entity_manager;
+    $this->pluginManager = $plugin_manager;
   }
 
   /**
@@ -36,7 +46,8 @@ class EntityLimitAddForm extends EntityForm {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.manager')
+      $container->get('entity.manager'),
+      $container->get('plugin.manager.entity_limit')
     );
   }
 
@@ -69,14 +80,16 @@ class EntityLimitAddForm extends EntityForm {
       '#disabled' => !$entity_limit->isNew(),
     );
 
-    /**
-     * @TODO Need to find a way to load all the available plugins.
-     */
-    $plugins = ['user' => t('User'), 'role' => t('Role')];
+    $plugins = $this->pluginManager->getDefinitions();
+    $plugins_data = array();
+    foreach ($plugins as $plugin_id => $plugin) {
+      $plugins_data[$plugin_id] = $plugin['title'];
+    }
+
     $form['plugin'] = array(
       '#type' => 'radios',
       '#title' => $this->t('Select plug-in'),
-      '#options' => $plugins,
+      '#options' => $plugins_data,
       '#required' => TRUE,
       '#default_value' => $entity_limit->getPlugin(),
     );
@@ -112,7 +125,7 @@ class EntityLimitAddForm extends EntityForm {
       '#options' => $options,
       '#default_value' => $entity_limit->getEntityLimitBundles(),
       '#prefix' => '<div id="bundles-container">',
-      '#suffix' => '</div>'
+      '#suffix' => '</div>',
     );
 
     return $form;
@@ -167,8 +180,10 @@ class EntityLimitAddForm extends EntityForm {
 
   /**
    * AJAX Callback function to add bundle list based on the selected entity type.
+   *
    * @param array $form
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *
    * @return \Drupal\Core\Ajax\AjaxResponse
    */
   public function entityBundleCallback(array &$form, FormStateInterface &$form_state) {
@@ -177,6 +192,7 @@ class EntityLimitAddForm extends EntityForm {
 
   /**
    * Get list of all content entities.
+   *
    * @return array
    */
   protected function getContentEntities() {
@@ -186,4 +202,5 @@ class EntityLimitAddForm extends EntityForm {
     $content_entities = array_combine($content_entities_key, $content_entities);
     return $content_entities;
   }
+
 }
