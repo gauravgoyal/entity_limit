@@ -115,18 +115,18 @@ class EntityLimitAddForm extends EntityForm {
         foreach ($bundles as $machine_name => $bundle) {
           $options[$machine_name] = $bundle['label'];
         }
+        $form['entity_bundles'] = array(
+          '#type' => 'checkboxes',
+          '#required' => TRUE,
+          '#title' => $this->t('Select @entity_type bundles', array('@entity_type' => $entity_types[$entity_type])),
+          '#description' => $this->t('Select bundles to apply limit.'),
+          '#options' => $options,
+          '#default_value' => $entity_limit->getEntityLimitBundles(),
+        );
       }
     }
-    $form['entity_bundles'] = array(
-      '#type' => 'checkboxes',
-      '#required' => TRUE,
-      '#title' => $this->t('Select ' . $entity_type . ' bundles'),
-      '#description' => $this->t('Select bundles to apply limit.'),
-      '#options' => $options,
-      '#default_value' => $entity_limit->getEntityLimitBundles(),
-      '#prefix' => '<div id="bundles-container">',
-      '#suffix' => '</div>',
-    );
+    $form['entity_bundles']['#prefix'] = '<div id="bundles-container">';
+    $form['entity_bundles']['#suffix'] = '</div>';
 
     return $form;
   }
@@ -136,11 +136,11 @@ class EntityLimitAddForm extends EntityForm {
    */
   protected function actions(array $form, FormStateInterface $form_state) {
     $actions = parent::actions($form, $form_state);
-    $actions['submit']['#value'] = t('Save entity limit');
+    $actions['submit']['#value'] = $this->t('Save entity limit');
     if ($form_state->getFormObject()->getEntity()->isNew()) {
-      $actions['submit']['#value'] = t('Save and manage limits');
+      $actions['submit']['#value'] = $this->t('Save and manage limits');
     }
-    $actions['delete']['#value'] = t('Delete entity limit');
+    $actions['delete']['#value'] = $this->t('Delete entity limit');
     return $actions;
   }
 
@@ -167,11 +167,11 @@ class EntityLimitAddForm extends EntityForm {
     $args = array('%label' => $entity_limit->label());
 
     if ($status == SAVED_UPDATED) {
-      drupal_set_message(t('The entity limit %label has been updated.', $args));
+      drupal_set_message($this->t('The entity limit %label has been updated.', $args));
       $form_state->setRedirectUrl($entity_limit->urlInfo('collection'));
     }
     elseif ($status == SAVED_NEW) {
-      drupal_set_message(t('The entity limit %label has been added.', $args));
+      drupal_set_message($this->t('The entity limit %label has been added.', $args));
       $context = array_merge($args, array('link' => $entity_limit->link($this->t('View'), 'collection')));
       $this->logger('node')->notice('Added entity limit %name.', $context);
       $form_state->setRedirectUrl($entity_limit->urlInfo('manage-form'));
@@ -179,12 +179,15 @@ class EntityLimitAddForm extends EntityForm {
   }
 
   /**
-   * AJAX Callback function to add bundle list based on the selected entity type.
+   * AJAX Callback to add bundle list based on the selected entity type.
    *
    * @param array $form
+   *   Form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Form state.
    *
    * @return \Drupal\Core\Ajax\AjaxResponse
+   *   Array.
    */
   public function entityBundleCallback(array &$form, FormStateInterface &$form_state) {
     return $form['entity_bundles'];
@@ -194,6 +197,7 @@ class EntityLimitAddForm extends EntityForm {
    * Get list of all content entities.
    *
    * @return array
+   *   Array of content entities.
    */
   protected function getContentEntities() {
     $entity_manager = $this->entityManager->getEntityTypeLabels(TRUE);
