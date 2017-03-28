@@ -24,12 +24,19 @@ class Role extends EntityLimitPluginBase {
     foreach ($roles as $role) {
       $allowed_roles[$role->id()] = $role->label();
     }
-    $form['settings'] = array(
+    $form['limits'] = array(
+      '#type' => 'container'
+    );
+    $form['limits']['id'] = array(
       '#type' => 'select',
-      '#title' => $this->t('Select Roles to Limit'),
-      '#description' => $this->t('Limit will be applied to these roles'),
+      '#title' => $this->t('Select Role to Limit'),
+      '#description' => $this->t('Limit will be applied to this role'),
       '#options' => $allowed_roles,
-      '#default_value' => $this->settings,
+      '#required' => TRUE,
+    );
+    $form['limits']['limit'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('Limit'),
       '#required' => TRUE,
     );
     return $form;
