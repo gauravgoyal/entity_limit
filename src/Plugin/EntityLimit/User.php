@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\entity_limit\Plugin\EntityLimitViolation;
+namespace Drupal\entity_limit\Plugin\EntityLimit;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
@@ -19,14 +19,36 @@ class User extends EntityLimitPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function settingsForm(array $form, FormStateInterface $form_state) {
-    $form['settings'] = array(
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form['#tree'] = TRUE;
+    $form['limits'] = array(
+      '#type' => 'container'
+    );
+    $form['limits'][0]['id'] = array(
       '#type' => 'entity_autocomplete',
       '#target_type' => 'user',
       '#title' => $this->t('Select users to apply limit'),
       '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
-      '#default_value' => !is_null($this->settings) ? User::loadMultiple($this->settings) : array(),
-      '#tags' => TRUE,
+//      '#default_value' => !is_null($this->settings) ? User::loadMultiple($this->settings) : array(),
+//      '#tags' => TRUE,
+    );
+    $form['limits'][0]['limit'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('Limit'),
+      '#required' => TRUE,
+    );
+    $form['limits'][1]['id'] = array(
+      '#type' => 'entity_autocomplete',
+      '#target_type' => 'user',
+      '#title' => $this->t('Select users to apply limit'),
+      '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
+//      '#default_value' => !is_null($this->settings) ? User::loadMultiple($this->settings) : array(),
+//      '#tags' => TRUE,
+    );
+    $form['limits'][1]['limit'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('Limit'),
+      '#required' => TRUE,
     );
     return $form;
   }
@@ -34,34 +56,22 @@ class User extends EntityLimitPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function setConfiguration(array $configuration) {
-    if (!empty($configuration['settings'])) {
-      foreach ($configuration['settings'] as $key => $value) {
-        if (!empty($value['target_id'])) {
-          $configuration['settings'][$key] = $value['target_id'];
-        }
-      }
-    }
-    parent::setConfiguration($configuration);
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+
   }
 
   /**
    * {@inheritdoc}
    */
-  public function processViolation() {
-    $user = \Drupal::currentUser();
-    if (in_array($user->id(), $this->settings)) {
-      return ENTITYLIMIT_APPLY;
-    }
-    return ENTITYLIMIT_NEUTRAL;
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
-  public function addConditions(&$query) {
-    $user = \Drupal::currentUser();
-    $query->condition('uid', $user->id());
+  public function execute() {
+
   }
 
 }
