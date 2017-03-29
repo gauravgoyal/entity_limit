@@ -45,12 +45,14 @@ class Role extends EntityLimitPluginBase {
         '#type' => 'select',
         '#description' => $this->t('Limit will be applied to this role'),
         '#options' => $allowed_roles,
+        '#required' => TRUE,
       );
 
       $form['limits'][$i]['limit'] = array(
         '#type' => 'textfield',
         '#description' => $this->t('Add limit applicable for this user'),
         '#size' => 60,
+        '#required' => TRUE,
       );
       $form['limits'][$i]['remove_row'] = array(
         '#type' => 'submit',
