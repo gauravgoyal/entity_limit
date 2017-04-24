@@ -4,7 +4,6 @@ namespace Drupal\entity_limit\Plugin\EntityLimit;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
-use Drupal\user\Entity\User;
 
 /**
  * Provides a plugin to limit entities per user.
@@ -21,36 +20,90 @@ class User extends EntityLimitPluginBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form['#tree'] = TRUE;
+
+    $num_rows = $form_state->get('num_rows');
+    if (empty($num_rows)) {
+      $num_rows = $form_state->set('num_rows', 1);
+    }
+
     $form['limits'] = array(
-      '#type' => 'container'
+      '#type' => 'table',
+      '#caption' => $this->t('Add limits'),
+      '#header' => [$this->t('Role'), $this->t('Limit'), $this->t('Operations')],
+      '#prefix' => '<div id="limits-table">',
+      '#suffix' => '</div>',
     );
-    $form['limits'][0]['id'] = array(
-      '#type' => 'entity_autocomplete',
-      '#target_type' => 'user',
-      '#title' => $this->t('Select users to apply limit'),
-      '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
-//      '#default_value' => !is_null($this->settings) ? User::loadMultiple($this->settings) : array(),
-//      '#tags' => TRUE,
+
+    for ($i = 0; $i < $num_rows; $i++) {
+      $form['limits'][$i]['id'] = array(
+        '#type' => 'entity_autocomplete',
+        '#target_type' => 'user',
+        '#title' => $this->t('Select users to apply limit'),
+        '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
+      );
+
+      $form['limits'][$i]['limit'] = array(
+        '#type' => 'textfield',
+        '#description' => $this->t('Add limit applicable for this user'),
+        '#size' => 60,
+      );
+      $form['limits'][$i]['remove_row'] = array(
+        '#type' => 'submit',
+        '#value' => t('Remove Row'),
+        '#submit' => array([$this, 'removeRow']),
+        '#ajax' => [
+          'callback' => [$this, 'ajaxCallback'],
+          'wrapper' => 'limits-table',
+        ],
+      );
+    }
+
+    $form['add_row'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add Row'),
+      '#submit' => array([$this, 'addRow']),
+      '#ajax' => [
+        'callback' => [$this, 'ajaxCallback'],
+        'wrapper' => 'limits-table',
+      ],
     );
-    $form['limits'][0]['limit'] = array(
-      '#type' => 'textfield',
-      '#title' => $this->t('Limit'),
-      '#required' => TRUE,
-    );
-    $form['limits'][1]['id'] = array(
-      '#type' => 'entity_autocomplete',
-      '#target_type' => 'user',
-      '#title' => $this->t('Select users to apply limit'),
-      '#description' => $this->t('Limit will be applied to these users. Seperate multiple users by comma'),
-//      '#default_value' => !is_null($this->settings) ? User::loadMultiple($this->settings) : array(),
-//      '#tags' => TRUE,
-    );
-    $form['limits'][1]['limit'] = array(
-      '#type' => 'textfield',
-      '#title' => $this->t('Limit'),
-      '#required' => TRUE,
-    );
+    $form_state->setCached(FALSE);
     return $form;
+  }
+
+  /**
+   * Submit handler for the "remove row" button.
+   *
+   * Decrements the max counter and causes a form rebuild.
+   */
+  public function removeRow(array &$form, FormStateInterface $form_state) {
+    $num_rows = $form_state->get('num_rows');
+    if ($num_rows > 1) {
+      $num_rows = $num_rows - 1;
+      $form_state->set('num_rows', $num_rows);
+    }
+    $form_state->setRebuild();
+  }
+
+  /**
+   * Submit handler for the "add row" button.
+   *
+   * Increment the max counter and causes a form rebuild.
+   */
+  public function addRow(array &$form, FormStateInterface $form_state) {
+    $num_rows = $form_state->get('num_rows');
+    $num_rows = $num_rows + 1;
+    $form_state->set('num_rows', $num_rows);
+    $form_state->setRebuild();
+  }
+
+  /**
+   * Callback for both ajax-enabled buttons.
+   *
+   * Selects and returns the fieldset with the names in it.
+   */
+  public function ajaxCallback(array &$form, FormStateInterface $form_state) {
+    return $form['limits'];
   }
 
   /**
