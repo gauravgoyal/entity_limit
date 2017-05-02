@@ -9,21 +9,25 @@ use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
  * Provides a plugin to limit entities per role.
  *
  * @EntityLimit(
- *   id = "role",
- *   title = @Translation("Role"),
+ *   id = "role_limit",
+ *   title = @Translation("Role Limit"),
  * )
  */
-class Role extends EntityLimitPluginBase {
+class RoleLimit extends EntityLimitPluginBase {
 
   /**
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form['#tree'] = TRUE;
-
-    $num_rows = $form_state->get('num_rows');
-    if (empty($num_rows)) {
-      $num_rows = $form_state->set('num_rows', 1);
+    $entity_limit = $form['entity_limit'];
+    $limits = $entity_limit->get('limits');
+    if (is_null($form_state->get('num_rows'))) {
+      $count = !empty($limits) ? count($limits) : 1;
+      $form_state->set('num_rows', $count);
+    }
+    else {
+      $count = $form_state->get('num_rows');
     }
 
     $roles = user_roles(TRUE);
@@ -40,12 +44,13 @@ class Role extends EntityLimitPluginBase {
       '#suffix' => '</div>',
     );
 
-    for ($i = 0; $i < $num_rows; $i++) {
+    for ($i = 0; $i < $count; $i++) {
       $form['limits'][$i]['id'] = array(
         '#type' => 'select',
         '#description' => $this->t('Limit will be applied to this role'),
         '#options' => $allowed_roles,
         '#required' => TRUE,
+        '#default_value' => isset($limits[$i]['id']) ? $limits[$i]['id'] : '',
       );
 
       $form['limits'][$i]['limit'] = array(
@@ -53,6 +58,7 @@ class Role extends EntityLimitPluginBase {
         '#description' => $this->t('Add limit applicable for this user'),
         '#size' => 60,
         '#required' => TRUE,
+        '#default_value' => isset($limits[$i]['limit']) ? $limits[$i]['limit'] : '',
       );
       $form['limits'][$i]['remove_row'] = array(
         '#type' => 'submit',
