@@ -8,23 +8,13 @@
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Session\AccountInterface;
 
-const ENTITYLIMIT_NO_LIMIT = -1;
-const ENTITYLIMIT_ENABLED = 1;
-const ENTITYLIMIT_NEUTRAL = 0;
-const ENTITYLIMIT_APPLY = TRUE;
-
 /**
  * Implements hook_entity_create_access().
  *
  * @see: hook_entity_access().
  */
 function entity_limit_entity_create_access(AccountInterface $account, array $context, $entity_bundle) {
-  // No limit restriction for user id = 1.
-  if ($account->id() == 1) {
-    return AccessResult::allowed();
-  }
   $entity_type_id = $context['entity_type_id'];
-  $result = \Drupal::service('entity_limit.usage')->entityLimitViolationCheck($entity_type_id, $entity_bundle);
-  $permission = "create $entity_bundle content";
-  return ($result) ? AccessResult::forbidden() : AccessResult::allowedIfHasPermission($account, $permission);
+  $result = \Drupal::service('entity_limit.inspector')->checkEntityLimits($entity_type_id, $entity_bundle, $account);
+  return ($result) ? AccessResult::forbidden() : AccessResult::neutral();
 }
