@@ -2,6 +2,9 @@ services:
   plugin.manager.entity_limit:
     class: Drupal\entity_limit\EntityLimitPluginManager
     parent: default_plugin_manager
+  entity_limit.inspector:
+    class: Drupal\entity_limit\EntityLimitInspector
+    arguments: ['@entity.manager', '@plugin.manager.entity_limit']
   entity_limit.usage:
     class: Drupal\entity_limit\EntityLimitUsage
     arguments: ['@entity.manager', '@plugin.manager.entity_limit']
