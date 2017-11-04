@@ -1,0 +1,13 @@
+entity.entity_limit.edit_form:
+  route_name: entity.entity_limit.edit_form
+  base_route: entity.entity_limit.edit_form
+  title: 'Edit'
+entity.entity_limit.delete_form:
+  route_name: entity.entity_limit.delete_form
+  base_route: entity.entity_limit.edit_form
+  title: 'Delete'
+  weight: 10
+entity.entity_limit.manage_form:
+  route_name: entity.entity_limit.manage_form
+  base_route: entity.entity_limit.edit_form
+  title: 'Manage Limits'
