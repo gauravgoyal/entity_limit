@@ -18,14 +18,19 @@ class EntityLimit extends Plugin {
   public $id;
 
   /**
-   * The human-readable name of the filter.
+   * The human-readable name of the entity limit plugin.
    *
-   * This is used as an administrative summary of what the filter does.
-   *
-   * @ingroup plugin_translatable
+   * This is used as an administrative title for the entity limit plugin.
    *
    * @var \Drupal\Core\Annotation\Translation
    */
   public $title;
+
+  /**
+   * Priority for the entity limit plugin.
+   *
+   * @var \Drupal\Core\Annotation\Translation
+   */
+  public $priority;
 
 }

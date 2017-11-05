@@ -40,17 +40,39 @@ class EntityLimitInspector {
    */
   public function checkEntityLimits($entity_type_id, $entity_bundle, $account = NULL) {
     $access = TRUE;
-    $applicableLimits = $this->getApplicableLimits($entity_type_id, $entity_bundle);
+    $applicable_limits = $this->getApplicableLimits($entity_type_id, $entity_bundle);
 
-    // Foreach applicable limits check if account passes the criterion.
-    foreach ($applicableLimits as $entity_limit) {
-      $plugin_id = $entity_limit->getPlugin();
-      $plugin = $this->pluginManager->createInstance($plugin_id, ['of' => 'configuration values']);
-      $plugin_access = $plugin->validateAccountLimit($account, $entity_limit);
-      if (!$plugin_access) {
-        $access = FALSE;
-        break;
+    if (!empty($applicable_limits)) {
+      $plugin_access = [];
+      // For each applicable limits check if account passes the criterion.
+      foreach ($applicable_limits as $key => $entity_limit) {
+        $plugin_id = $entity_limit->getPlugin();
+        $plugin = $this->pluginManager->createInstance($plugin_id, ['of' => 'configuration values']);
+        $limit = $plugin->validateAccountLimit($account, $entity_limit);
+        $plugin_priority = $plugin->getPriority();
+        if (is_array($plugin_access[$entity_limit->get('weight')])) {
+          $plugin_access[$entity_limit->get('weight')][$plugin_priority][$key] = $limit;
+        }
+        else {
+          $plugin_access[$entity_limit->get('weight')] = [];
+          $plugin_access[$entity_limit->get('weight')][$plugin_priority] = [];
+          $plugin_access[$entity_limit->get('weight')][$plugin_priority][$key] = $limit;
+        }
       }
+
+      // Sort in the order of entity limit priority.
+      ksort($plugin_access);
+
+      // There can be two cases
+      // 1. Multiple applicable limits of different priority. In this case
+      // we will give access to the top priority item.
+      // 2. Multiple applicable limits of same priority. In this case we will
+      // goto plugin priority.
+      // 2.1. If there are multiple limits of same plugin priority & entity
+      // limit priority then we consider the height limit value from the set.
+      $priority_limit = reset($plugin_access);
+      ksort($priority_limit);
+      $access = in_array(TRUE, reset($priority_limit)) ? TRUE : FALSE;
     }
     return $access;
   }

@@ -14,6 +14,7 @@ use Drupal\entity_limit\Entity\EntityLimit;
  * @EntityLimit(
  *   id = "user_limit",
  *   title = @Translation("User Limit"),
+ *   priority = 0,
  * )
  */
 class UserLimit extends EntityLimitPluginBase {
@@ -151,7 +152,7 @@ class UserLimit extends EntityLimitPluginBase {
       $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
       $query->condition('uid', $account->id());
       $count = count($query->execute());
-      if ($count >= $limit) {
+      if ($count >= (int) $limit) {
         $access = FALSE;
       }
       return $access;

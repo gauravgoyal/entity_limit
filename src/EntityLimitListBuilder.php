@@ -2,21 +2,65 @@
 
 namespace Drupal\entity_limit;
 
-use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
+use Drupal\Core\Config\Entity\DraggableListBuilder;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a listing of Entity Limit entities.
  */
-class EntityLimitListBuilder extends ConfigEntityListBuilder {
+class EntityLimitListBuilder extends DraggableListBuilder {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $storage) {
+    parent::__construct($entity_type, $storage);
+
+    // Check if the entity type supports weighting.
+    if ($this->entityType->hasKey('weight')) {
+      $this->weightKey = $this->entityType->getKey('weight');
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type) {
+    return new static(
+      $entity_type,
+      $container->get('entity.manager')->getStorage($entity_type->id()),
+      $container->get('config.factory')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId() {
+    return 'entity_limit_admin_overview';
+  }
+
   /**
    * {@inheritdoc}
    */
   public function buildHeader() {
-    $header['label'] = $this->t('Entity Limit');
-    $header['id'] = $this->t('Machine name');
+    $header['label'] = $this->t('Name');
+    $header['id'] = $this->t('Machine Name');
     return $header + parent::buildHeader();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildForm($form, $form_state);
+    $form['actions']['submit']['#value'] = $this->t('Save');
+    return $form;
   }
 
   /**
@@ -24,8 +68,7 @@ class EntityLimitListBuilder extends ConfigEntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     $row['label'] = $entity->label();
-    $row['id'] = $entity->id();
-    // You probably want a few more properties here...
+    $row['id']['#markup'] = $entity->id();
     return $row + parent::buildRow($entity);
   }
 
@@ -53,12 +96,9 @@ class EntityLimitListBuilder extends ConfigEntityListBuilder {
   /**
    * {@inheritdoc}
    */
-  public function render() {
-    $build = parent::render();
-    $build['table']['#empty'] = $this->t('No entity limits available. <a href=":link">Add entity limit</a>.', [
-      ':link' => Url::fromRoute('entity.entity_limit.add')->toString()
-    ]);
-    return $build;
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    parent::submitForm($form, $form_state);
+    drupal_set_message($this->t('The text format ordering has been saved.'));
   }
 
 }

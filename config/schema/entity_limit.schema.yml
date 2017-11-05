@@ -8,6 +8,9 @@ entity_limit.entity_limit.*:
     label:
       type: label
       label: 'Label'
+    weight:
+      type: integer
+      label: 'Weight'
     plugin:
       type: string
       label: 'Select Plugin'
@@ -33,5 +36,5 @@ entity_limit.limits.*:
       type: string
       label: 'User id or Role id'
     limit:
-      type: string
+      type: integer
       label: 'Limit'

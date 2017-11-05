@@ -25,6 +25,7 @@ use Drupal\entity_limit\EntityLimitInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",
+ *     "weight" = "weight",
  *   },
  *   links = {
  *     "edit-form" = "/admin/structure/entity_limit/edit/{entity_limit}",
@@ -37,57 +38,83 @@ use Drupal\entity_limit\EntityLimitInterface;
 class EntityLimit extends ConfigEntityBase implements EntityLimitInterface {
 
   /**
-   * The Entity Limit ID.
+   * Unique machine name of the entity limit.
    *
    * @var string
    */
   protected $id;
 
   /**
-   * The Entity Limit label.
+   * Unique label of the entity limit.
    *
    * @var string
    */
   protected $label;
 
   /**
-   * Entity Limit Plugin.
+   * Unique machine name of the entity limit plugin used for this entity.
    *
    * @var string
    */
   protected $plugin;
 
   /**
+   * Unique machine name of the entity used in this entity limit configuration.
+   *
    * @var string
    */
   protected $entity_type;
 
   /**
-   * @var array
+   * Bundles of the entity used in this entity limit configuration.
+   *
+   * @var string
    */
   protected $entity_bundles;
 
   /**
-   * @var array
+   * Limit configurations in this entity limit configuration.
+   *
+   * @var string
    */
   protected $limits;
 
   /**
+   * Weight of this entity in the entity limit selector.
+   *
+   * The first/lowest entity limit has lowest priority.
+   *
+   * @var int
+   */
+  protected $weight = 0;
+
+  /**
+   * Gets the plugin.
+   *
    * @return string
+   *   The plugin.
    */
   public function getPlugin() {
     return $this->plugin;
   }
 
   /**
+   * Gets the entity limit type.
+   *
    * @return string
+   *   The entity limit type.
    */
   public function getEntityLimitType() {
     return $this->entity_type;
   }
 
+  /**
+   * Gets the entity limit bundles.
+   *
+   * @return array
+   *   The entity limit bundles.
+   */
   public function getEntityLimitBundles() {
-    // @todo: We're not getting the value for ajaxified form elements, need to look into this.
     return $this->entity_bundles;
   }
 

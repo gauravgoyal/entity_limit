@@ -13,6 +13,7 @@ use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
  * @EntityLimit(
  *   id = "role_limit",
  *   title = @Translation("Role Limit"),
+ *   priority = 1,
  * )
  */
 class RoleLimit extends EntityLimitPluginBase {
@@ -146,7 +147,6 @@ class RoleLimit extends EntityLimitPluginBase {
     }
 
     // Get Lowest Limit.
-    $limit = NULL;
     $role_limit = 0;
     $access = TRUE;
 
@@ -156,13 +156,13 @@ class RoleLimit extends EntityLimitPluginBase {
       $role_limit = ($temp > $role_limit) ? $temp : $role_limit;
     }
 
-    if (!is_null($limit)) {
+    if ($role_limit !== 0) {
       $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
       $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
       $query
         ->condition('uid', $account->id());
       $count = count($query->execute());
-      $access = $count >= $limit ? FALSE : $access;
+      $access = $count >= $role_limit ? FALSE : $access;
     }
     return $access;
   }

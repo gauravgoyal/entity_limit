@@ -31,6 +31,13 @@ abstract class EntityLimitPluginBase extends PluginBase implements EntityLimitPl
   /**
    * {@inheritdoc}
    */
+  public function getPriority() {
+    return $this->pluginDefinition['priority'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function calculateDependencies() {
     return array();
   }
