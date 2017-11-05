@@ -5,6 +5,8 @@ namespace Drupal\entity_limit\Plugin\EntityLimit;
 use Drupal\user\Entity\User;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\entity_limit\Entity\EntityLimit;
 
 /**
  * Provides a plugin to limit entities per user.
@@ -132,8 +134,37 @@ class UserLimit extends EntityLimitPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function execute() {
+  public static function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
+    $uid = $account->id();
+    $entity_limits = [];
+    foreach ($entityLimit->get('limits') as $limit) {
+      $entity_limits[$limit['id']] = $limit['limit'];
+    }
 
+    // Get Lowest Limit.
+    $limit = NULL;
+    $uid_limit = (isset($entity_limits[$uid])) ? $entity_limits[$uid] : NULL;
+    if (($uid_limit != NULL) && ($limit != NULL)) {
+      $limit = ($uid_limit < $limit) ? $uid_limit : $limit;
+    }
+    elseif ($limit == NULL && $uid_limit != NULL) {
+      $limit = $uid_limit;
+    }
+
+    if (!is_null($limit)) {
+      // Get Created count.
+      $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
+      $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
+      $query
+        ->condition('uid', $account->id());
+      $count = count($query->execute());
+      if ($count <= $limit) {
+        return TRUE;
+      }
+      return FALSE;
+    }
+    return TRUE;
   }
+
 
 }

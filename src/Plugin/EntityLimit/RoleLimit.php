@@ -3,6 +3,8 @@
 namespace Drupal\entity_limit\Plugin\EntityLimit;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\entity_limit\Entity\EntityLimit;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
 
 /**
@@ -136,8 +138,38 @@ class RoleLimit extends EntityLimitPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function execute() {
+  public static function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
+    $account_roles = $account->getRoles();
+    $entity_limits = [];
+    foreach ($entityLimit->get('limits') as $limit) {
+      $entity_limits[$limit['id']] = $limit['limit'];
+    }
 
+    // Get Lowest Limit.
+    $limit = NULL;
+    foreach ($account_roles as $role) {
+      $role_limit = (isset($entity_limits[$role])) ? $entity_limits[$role] : NULL;
+      if (($role_limit != NULL) && ($limit != NULL)) {
+        $limit = ($role_limit < $limit) ? $role_limit : $limit;
+      }
+      elseif ($limit == NULL && $role_limit != NULL) {
+        $limit = $role_limit;
+      }
+    }
+
+    if (!is_null($limit)) {
+      // Get Created count.
+      $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
+      $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
+      $query
+        ->condition('uid', $account->id());
+      $count = count($query->execute());
+      if ($count < $limit) {
+        return TRUE;
+      }
+      return FALSE;
+    }
+    return TRUE;
   }
 
 }
