@@ -14,15 +14,18 @@ class EntityLimitInspector {
 
   protected $entityLimit;
 
+  protected $pluginManager;
+
   /**
    * Construct entity_limit usage.
    *
    * @param EntityManagerInterface $entityManager
    *   Entity Manager.
    */
-  public function __construct(EntityManagerInterface $entityManager, PluginManagerInterface $entityLimit) {
+  public function __construct(EntityManagerInterface $entityManager, EntityLimitUsage $entityLimit, PluginManagerInterface $pluginManager) {
     $this->entityManager = $entityManager;
     $this->entityLimit = $entityLimit;
+    $this->pluginManager = $pluginManager;
   }
 
   /**
@@ -40,19 +43,19 @@ class EntityLimitInspector {
    */
   public function checkEntityLimits($entity_type_id, $entity_bundle, $account = NULL) {
     $access = TRUE;
-    /**
-     * @todo
-     */
-    // Get all limits applicable to this entity id and bundle.
-    $bundleLimits = $this->getBundleLimits($entity_type_id, $entity_bundle);
-    // If $account is not specified take logged in user account.
-    // Check all limits applicable to this account according to plugins.
-    $limits = $this->getAccountLimits($account, $bundleLimits);
-    // Check if this account has crossed the limit according to priority of plugins
-    // i.e. check user first then role then others.
-    $access = $limits->validateAccess();
-    return $access;
+    $applicableLimits = $this->entityLimit->getApplicableLimits($entity_type_id, $entity_bundle);
+    $available_plugins = $this->pluginManager->getDefinitions();
 
+    // Foreach applicable limits check if account passes the criterion.
+    foreach ($applicableLimits as $entity_limit) {
+      $plugin_id = $entity_limit->getPlugin();
+      $plugin_access = $available_plugins[$plugin_id]['class']::validateAccountLimit($account, $entity_limit);
+      if (!$plugin_access) {
+        $access = FALSE;
+        break;
+      }
+    }
+    return $access;
   }
 
   /**

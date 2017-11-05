@@ -96,22 +96,20 @@ class EntityLimitUsage {
   /**
    * Get all applicable limits for the given entity type and bundle.
    */
-  public function applicableLimits($entityTypeId, $bundle) {
+  protected function applicableLimits($entityTypeId, $bundle) {
     foreach ($this->enabledViolations() as $entity_limit_name => $entity_limit) {
-      if ($entity_limit->isLimitApplicableToEntity($entityTypeId)) {
-        if (empty($entity_limit->getBundles($entityTypeId)) || $entity_limit->isLimitApplicableToBundle($bundle)) {
-          foreach ($entity_limit->violations() as $key => $violation) {
-            if ($violation->processViolation() == ENTITYLIMIT_APPLY) {
-              $this->applicableLimits[$key][$entity_limit_name]['violation'] = $violation;
-              $this->applicableLimits[$key][$entity_limit_name]['entity'] = $entity_limit;
-            }
-            else {
-              $this->applicableLimits['no_violation'][$entity_limit_name]['entity'] = $entity_limit;
-            }
-          }
+      $entity_type_limit = $entity_limit->getEntityLimitType();
+      if ($entity_type_limit === $entityTypeId) {
+        if (in_array($bundle, $entity_limit->getEntityLimitBundles())) {
+          $this->applicableLimits[] = $entity_limit;
         }
       }
     }
+  }
+
+  public function getApplicableLimits($entityTypeId, $bundle) {
+    $this->applicableLimits($entityTypeId, $bundle);
+    return $this->applicableLimits;
   }
 
   /**
