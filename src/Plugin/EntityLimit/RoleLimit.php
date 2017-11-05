@@ -20,7 +20,7 @@ class RoleLimit extends EntityLimitPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  public function settingsForm(array $form, FormStateInterface $form_state) {
     $form['#tree'] = TRUE;
     $entity_limit = $form['entity_limit'];
     $limits = $entity_limit->get('limits');
@@ -119,20 +119,6 @@ class RoleLimit extends EntityLimitPluginBase {
    */
   public function ajaxCallback(array &$form, FormStateInterface $form_state) {
     return $form['limits'];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-
   }
 
   /**

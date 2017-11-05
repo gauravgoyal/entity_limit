@@ -14,6 +14,9 @@ class EntityLimitPluginCollection extends DefaultLazyPluginCollection {
 
   /**
    * {@inheritdoc}
+   *
+   * @return EntityLimitPluginInterface
+   *   \Drupal\EntityLimit\EntityLimitPluginInterface
    */
   public function &get($instance_id) {
     return parent::get($instance_id);
@@ -26,14 +29,25 @@ class EntityLimitPluginCollection extends DefaultLazyPluginCollection {
     if (!$this->definitions) {
       $this->definitions = $this->manager->getDefinitions();
     }
-
     foreach ($this->definitions as $plugin_id => $definition) {
       if (!isset($this->pluginInstances[$plugin_id])) {
         $this->initializePlugin($plugin_id);
       }
-
     }
     return $this->pluginInstances;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function initializePlugin($instance_id) {
+    $configuration = $this->manager->getDefinition($instance_id);
+    // Merge the actual configuration into the default configuration.
+    if (isset($this->configurations[$instance_id])) {
+      $configuration = NestedArray::mergeDeep($configuration, $this->configurations[$instance_id]);
+    }
+    $this->configurations[$instance_id] = $configuration;
+    parent::initializePlugin($instance_id);
   }
 
   /**
@@ -48,27 +62,12 @@ class EntityLimitPluginCollection extends DefaultLazyPluginCollection {
    * {@inheritdoc}
    */
   public function sortHelper($aID, $bID) {
-    $a = $this->get($aID);
-    $b = $this->get($bID);
-
-    if ($a->priority != $b->priority) {
-      return $a->priority < $b->priority ? -1 : 1;
-    }
-
+    // $a = $this->get($aID);
+    // $b = $this->get($bID);
+    // if ($a->priority != $b->priority) {
+    //   return $a->priority < $b->priority ? -1 : 1;
+    // }.
     return parent::sortHelper($aID, $bID);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function initializePlugin($instance_id) {
-    $configuration = $this->manager->getDefinition($instance_id);
-    // Merge the actual configuration into the default configuration.
-    if (isset($this->configurations[$instance_id])) {
-      $configuration = NestedArray::mergeDeep($configuration, $this->configurations[$instance_id]);
-    }
-    $this->configurations[$instance_id] = $configuration;
-    parent::initializePlugin($instance_id);
   }
 
 }

@@ -27,7 +27,7 @@ entity_limit.entity_limit.*:
       type: string
 
 entity_limit.limits.*:
-  type: mapping
+  type: config_object
   mapping:
     id:
       type: string
