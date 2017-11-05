@@ -22,6 +22,6 @@ interface EntityLimitPluginInterface extends PluginFormInterface, PluginInspecti
    *
    * @return mixed
    */
-  public static function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit);
+  public function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit);
 
 }

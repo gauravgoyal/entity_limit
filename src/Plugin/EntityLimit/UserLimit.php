@@ -134,7 +134,7 @@ class UserLimit extends EntityLimitPluginBase {
   /**
    * {@inheritdoc}
    */
-  public static function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
+  public function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
     $uid = $account->id();
     $entity_limits = [];
     foreach ($entityLimit->get('limits') as $limit) {
@@ -142,29 +142,20 @@ class UserLimit extends EntityLimitPluginBase {
     }
 
     // Get Lowest Limit.
-    $limit = NULL;
-    $uid_limit = (isset($entity_limits[$uid])) ? $entity_limits[$uid] : NULL;
-    if (($uid_limit != NULL) && ($limit != NULL)) {
-      $limit = ($uid_limit < $limit) ? $uid_limit : $limit;
-    }
-    elseif ($limit == NULL && $uid_limit != NULL) {
-      $limit = $uid_limit;
-    }
+    $limit = isset($entity_limits[$uid]) ? $entity_limits[$uid] : NULL;
+    $access = TRUE;
 
     if (!is_null($limit)) {
       // Get Created count.
       $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
       $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
-      $query
-        ->condition('uid', $account->id());
+      $query->condition('uid', $account->id());
       $count = count($query->execute());
-      if ($count <= $limit) {
-        return TRUE;
+      if ($count >= $limit) {
+        $access = FALSE;
       }
-      return FALSE;
+      return $access;
     }
-    return TRUE;
   }
-
 
 }

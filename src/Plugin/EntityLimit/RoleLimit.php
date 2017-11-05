@@ -138,7 +138,7 @@ class RoleLimit extends EntityLimitPluginBase {
   /**
    * {@inheritdoc}
    */
-  public static function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
+  public function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
     $account_roles = $account->getRoles();
     $entity_limits = [];
     foreach ($entityLimit->get('limits') as $limit) {
@@ -147,29 +147,24 @@ class RoleLimit extends EntityLimitPluginBase {
 
     // Get Lowest Limit.
     $limit = NULL;
+    $role_limit = 0;
+    $access = TRUE;
+
+    // If a user has multiple roles, then take the highest limit from them.
     foreach ($account_roles as $role) {
-      $role_limit = (isset($entity_limits[$role])) ? $entity_limits[$role] : NULL;
-      if (($role_limit != NULL) && ($limit != NULL)) {
-        $limit = ($role_limit < $limit) ? $role_limit : $limit;
-      }
-      elseif ($limit == NULL && $role_limit != NULL) {
-        $limit = $role_limit;
-      }
+      $temp = (isset($entity_limits[$role])) ? $entity_limits[$role] : NULL;
+      $role_limit = ($temp > $role_limit) ? $temp : $role_limit;
     }
 
     if (!is_null($limit)) {
-      // Get Created count.
       $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
       $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
       $query
         ->condition('uid', $account->id());
       $count = count($query->execute());
-      if ($count < $limit) {
-        return TRUE;
-      }
-      return FALSE;
+      $access = $count >= $limit ? FALSE : $access;
     }
-    return TRUE;
+    return $access;
   }
 
 }
