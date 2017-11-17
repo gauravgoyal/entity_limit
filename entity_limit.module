@@ -14,11 +14,14 @@ use Drupal\Core\Session\AccountInterface;
  * @see: hook_entity_access().
  */
 function entity_limit_entity_create_access(AccountInterface $account, array $context, $entity_bundle) {
-  $entity_type_id = NULL;
+  $result = TRUE;
   if (!empty($context['entity_type_id'])) {
-    $entity_type_id = $context['entity_type_id'];
+    $result = \Drupal::service('entity_limit.inspector')->checkEntityLimits(
+      $context['entity_type_id'],
+      $entity_bundle,
+      $account
+    );
   }
 
-  $result = \Drupal::service('entity_limit.inspector')->checkEntityLimits($entity_type_id, $entity_bundle, $account);
   return ($result) ? AccessResult::neutral() : AccessResult::forbidden();
 }
