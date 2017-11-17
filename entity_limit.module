@@ -7,6 +7,18 @@
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function entity_limit_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.entity_limit':
+      $output = file_get_contents(drupal_get_path('module', 'entity_limit') . '/README.md');
+      return $output;
+  }
+}
 
 /**
  * Implements hook_entity_create_access().
