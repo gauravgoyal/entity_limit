@@ -5,7 +5,6 @@ namespace Drupal\entity_limit\Plugin\EntityLimit;
 use Drupal\user\Entity\User;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_limit\Entity\EntityLimit;
 
 /**
@@ -135,15 +134,14 @@ class UserLimit extends EntityLimitPluginBase {
   /**
    * Get applicable limit count for account based on entity_limit.
    *
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   Logged in User Account.
    * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
    *   Entity Limit Object.
    *
-   * @return mixed
+   * @return int
+   *   limit applicable to current user.
    */
-  public function getLimitCount(AccountInterface $account, EntityLimit $entityLimit) {
-    $uid = $account->id();
+  public function getLimitCount(EntityLimit $entityLimit) {
+    $uid = \Drupal::currentUser()->id();
     $entity_limits = [];
     foreach ($entityLimit->get('limits') as $limit) {
       $entity_limits[$limit['id']] = $limit['limit'];
@@ -152,9 +150,17 @@ class UserLimit extends EntityLimitPluginBase {
   }
 
   /**
+   * Compare limits and provide access.
    *
+   * @param int $limit
+   *   The limit.
+   * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
+   *   The entity limit.
+   *
+   * @return bool
+   *   TRUE|FALSE for access.
    */
-  public function checkAccess($limit, $entityLimit) {
+  public function checkAccess($limit, EntityLimit $entityLimit) {
     $uid = \Drupal::currentUser()->id();
     $access = TRUE;
     $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());

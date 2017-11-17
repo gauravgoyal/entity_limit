@@ -4,7 +4,6 @@ namespace Drupal\entity_limit;
 
 use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
-use Drupal\Core\Session\AccountInterface;
 
 /**
  * Provide handler for all entity limit usage functions.
@@ -12,8 +11,9 @@ use Drupal\Core\Session\AccountInterface;
 class EntityLimitInspector {
 
   /**
+   * Unilimited limit option value.
+   *
    * @var int
-   *   Unilimited limit option value.
    */
   const ENTITYLIMITNOLIMIT = -1;
 
@@ -39,15 +39,13 @@ class EntityLimitInspector {
    *   Entity type.
    * @param string $entity_bundle
    *   Bundle name.
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   User account object.
    *
    * @return bool
    *   True if limit has reached otherwise false.
    */
-  public function checkEntityLimitAccess($entity_type_id, $entity_bundle, AccountInterface $account) {
+  public function checkEntityLimitAccess($entity_type_id, $entity_bundle) {
     $access = TRUE;
-    $access = $this->getApplicableLimit($entity_type_id, $entity_bundle, $account);
+    $access = $this->getApplicableLimit($entity_type_id, $entity_bundle);
     return $access;
   }
 
@@ -76,13 +74,11 @@ class EntityLimitInspector {
    *   Entity type.
    * @param string $entity_bundle
    *   Entity bundle.
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   User account object.
    *
    * @return array|mixed
    *   Array with limit_count and entity_limit object.
    */
-  public function getApplicableLimit($entity_type_id, $entity_bundle, AccountInterface $account) {
+  public function getApplicableLimit($entity_type_id, $entity_bundle) {
     $entity_limits = $this->getBundleLimits($entity_type_id, $entity_bundle);
     $applicable_limits = [];
     $plugin = [];
@@ -95,7 +91,7 @@ class EntityLimitInspector {
         }
         $plugin_priority = $plugin[$plugin_id]->getPriority();
         $weight = $entity_limit->get('weight');
-        $limit_count = $plugin[$plugin_id]->getLimitCount($account, $entity_limit);
+        $limit_count = $plugin[$plugin_id]->getLimitCount($entity_limit);
         if (isset($applicable_limits[$weight]) && is_array($applicable_limits[$weight])) {
           $applicable_limits[$weight][$plugin_priority][$limit_count] = $entity_limit;
         }
@@ -133,7 +129,7 @@ class EntityLimitInspector {
    * @return bool
    *   Access.
    */
-  public function compareLimits($applicable_limits, $plugin) {
+  public function compareLimits(array $applicable_limits, $plugin) {
     if (!empty($applicable_limits)) {
       if (array_key_exists(self::ENTITYLIMITNOLIMIT, $applicable_limits)) {
         $access = TRUE;

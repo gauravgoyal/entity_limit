@@ -3,7 +3,6 @@
 namespace Drupal\entity_limit\Plugin\EntityLimit;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_limit\Entity\EntityLimit;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
 
@@ -139,15 +138,14 @@ class RoleLimit extends EntityLimitPluginBase {
   /**
    * Get applicable limit count for account based on entity_limit.
    *
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   Logged in User Account.
    * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
    *   Entity Limit Object.
    *
    * @return mixed
+   *   Limit according to role.
    */
-  public function getLimitCount(AccountInterface $account, EntityLimit $entityLimit) {
-    $account_roles = $account->getRoles();
+  public function getLimitCount(EntityLimit $entityLimit) {
+    $account_roles = \Drupal::currentUser()->getRoles();
     $entity_limits = [];
     foreach ($entityLimit->get('limits') as $limit) {
       $entity_limits[$limit['id']] = $limit['limit'];
