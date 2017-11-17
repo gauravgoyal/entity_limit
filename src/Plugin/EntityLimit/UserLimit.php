@@ -151,4 +151,20 @@ class UserLimit extends EntityLimitPluginBase {
     return isset($entity_limits[$uid]) ? $entity_limits[$uid] : 0;
   }
 
+  /**
+   *
+   */
+  public function checkAccess($limit, $entityLimit) {
+    $uid = \Drupal::currentUser()->id();
+    $access = TRUE;
+    $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
+    $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
+    $query->condition('uid', $uid);
+    $count = count($query->execute());
+    if ($count >= (int) $limit) {
+      $access = FALSE;
+    }
+    return $access;
+  }
+
 }
