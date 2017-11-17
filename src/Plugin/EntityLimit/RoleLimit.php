@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_limit\Entity\EntityLimit;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
+use Drupal\entity_limit\Plugin\EntityLimitPluginInterface;
 
 /**
  * Provides a plugin to limit entities per role.
@@ -58,7 +59,7 @@ class RoleLimit extends EntityLimitPluginBase {
 
       $form['limits'][$i]['limit'] = array(
         '#type' => 'textfield',
-        '#description' => $this->t('Add limit applicable for this user'),
+        '#description' => $this->t('Add limit applicable for this user. Use -1 for unlimited limits.'),
         '#size' => 60,
         '#required' => TRUE,
         '#default_value' => isset($limits[$i]['limit']) ? $limits[$i]['limit'] : '',
@@ -156,6 +157,11 @@ class RoleLimit extends EntityLimitPluginBase {
       $role_limit = ($temp > $role_limit) ? $temp : $role_limit;
     }
 
+    // Check for unlimited limit access.
+    if ($role_limit === EntityLimitPluginInterface::entityLimitUnlimited) {
+      return $access;
+    }
+
     if ($role_limit !== 0) {
       $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
       $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
@@ -164,6 +170,7 @@ class RoleLimit extends EntityLimitPluginBase {
       $count = count($query->execute());
       $access = $count >= $role_limit ? FALSE : $access;
     }
+
     return $access;
   }
 

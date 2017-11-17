@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_limit\Entity\EntityLimit;
+use Drupal\entity_limit\Plugin\EntityLimitPluginInterface;
 
 /**
  * Provides a plugin to limit entities per user.
@@ -54,7 +55,7 @@ class UserLimit extends EntityLimitPluginBase {
 
       $form['limits'][$i]['limit'] = array(
         '#type' => 'textfield',
-        '#description' => $this->t('Add limit applicable for this user'),
+        '#description' => $this->t('Add limit applicable for this user. Use -1 for unlimited limits.'),
         '#size' => 60,
         '#required' => TRUE,
         '#default_value' => isset($limits[$i]['limit']) ? $limits[$i]['limit'] : '',
@@ -147,6 +148,12 @@ class UserLimit extends EntityLimitPluginBase {
     $access = TRUE;
 
     if (!is_null($limit)) {
+
+      // Check for unlimited limit access.
+      if ($limit === EntityLimitPluginInterface::entityLimitUnlimited) {
+        return $access;
+      }
+
       // Get Created count.
       $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
       $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
