@@ -163,4 +163,28 @@ class RoleLimit extends EntityLimitPluginBase {
     return $limit;
   }
 
+  /**
+   * Compare limits and provide access.
+   *
+   * @param int $limit
+   *   The limit.
+   * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
+   *   The entity limit.
+   *
+   * @return bool
+   *   TRUE|FALSE for access.
+   */
+  public function checkAccess($limit, EntityLimit $entityLimit) {
+    $uid = \Drupal::currentUser()->id();
+    $access = TRUE;
+    $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
+    $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
+    $query->condition('uid', $uid);
+    $count = count($query->execute());
+    if ($count >= (int) $limit) {
+      $access = FALSE;
+    }
+    return $access;
+  }
+
 }

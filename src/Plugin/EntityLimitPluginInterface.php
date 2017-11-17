@@ -19,4 +19,17 @@ interface EntityLimitPluginInterface extends PluginFormInterface, PluginInspecti
    */
   public function getLimitCount(EntityLimit $entityLimit);
 
+  /**
+   * Compare limits and provide access.
+   *
+   * @param int $limit
+   *   The limit.
+   * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
+   *   The entity limit.
+   *
+   * @return bool
+   *   Access TRUE|FALSE
+   */
+  public function checkAccess($limit, EntityLimit $entityLimit);
+
 }
