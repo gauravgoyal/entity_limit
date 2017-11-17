@@ -58,6 +58,7 @@ class EntityLimitAddLimitForm extends EntityForm {
     $form['entity_limit'] = $entity_limit;
     $form = parent::form($form, $form_state);
     $form = $plugin->buildConfigurationForm($form, $form_state);
+    unset($form['entity_limit']);
     return $form;
   }
 
