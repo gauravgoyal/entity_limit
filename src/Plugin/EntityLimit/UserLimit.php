@@ -157,6 +157,8 @@ class UserLimit extends EntityLimitPluginBase {
       }
       return $access;
     }
+
+    return $access;
   }
 
 }
