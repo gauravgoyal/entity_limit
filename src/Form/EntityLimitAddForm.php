@@ -52,7 +52,7 @@ class EntityLimitAddForm extends EntityForm {
   }
 
   /**
-   * {@inheritdoc}.
+   * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
 
@@ -91,7 +91,7 @@ class EntityLimitAddForm extends EntityForm {
       '#title' => $this->t('Select plug-in'),
       '#options' => $plugins_data,
       '#required' => TRUE,
-      '#default_value' => $entity_limit->getPlugin(),
+      '#default_value' => !empty($entity_limit->getPlugin()) ? $entity_limit->getPlugin() : array(),
     );
 
     $entity_types = $this->getContentEntities();
@@ -100,7 +100,7 @@ class EntityLimitAddForm extends EntityForm {
       '#title' => $this->t('Select entity type'),
       '#options' => $entity_types,
       '#required' => TRUE,
-      '#default_value' => $entity_limit->getEntityLimitType(),
+      '#default_value' => !empty($entity_limit->getEntityLimitType()) ? $entity_limit->getEntityLimitType() : '',
       '#ajax' => array(
         'callback' => '::entityBundleCallback',
         'wrapper' => 'bundles-container',
@@ -121,7 +121,7 @@ class EntityLimitAddForm extends EntityForm {
           '#title' => $this->t('Select @entity_type bundles', array('@entity_type' => $entity_types[$entity_type])),
           '#description' => $this->t('Select bundles to apply limit.'),
           '#options' => $options,
-          '#default_value' => $entity_limit->getEntityLimitBundles(),
+          '#default_value' => !empty($entity_limit->getEntityLimitBundles()) ? $entity_limit->getEntityLimitBundles() : array(),
         );
       }
     }
