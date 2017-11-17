@@ -121,8 +121,10 @@ class EntityLimitAddForm extends EntityForm {
           '#title' => $this->t('Select @entity_type bundles', array('@entity_type' => $entity_types[$entity_type])),
           '#description' => $this->t('Select bundles to apply limit.'),
           '#options' => $options,
-          '#default_value' => $entity_limit->getEntityLimitBundles(),
         );
+        if($default_value = $entity_limit->getEntityLimitBundles()){
+          $form['entity_bundles']['#default_value'] = $default_value;
+        }
       }
     }
     $form['entity_bundles']['#prefix'] = '<div id="bundles-container">';
