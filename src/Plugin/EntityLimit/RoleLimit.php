@@ -6,7 +6,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_limit\Entity\EntityLimit;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
-use Drupal\entity_limit\Plugin\EntityLimitPluginInterface;
 
 /**
  * Provides a plugin to limit entities per role.
@@ -138,9 +137,16 @@ class RoleLimit extends EntityLimitPluginBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Get applicable limit count for account based on entity_limit.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   Logged in User Account.
+   * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
+   *   Entity Limit Object.
+   *
+   * @return mixed
    */
-  public function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
+  public function getLimitCount(AccountInterface $account, EntityLimit $entityLimit) {
     $account_roles = $account->getRoles();
     $entity_limits = [];
     foreach ($entityLimit->get('limits') as $limit) {
@@ -148,30 +154,15 @@ class RoleLimit extends EntityLimitPluginBase {
     }
 
     // Get Lowest Limit.
-    $role_limit = 0;
-    $access = TRUE;
+    $limit = 0;
 
     // If a user has multiple roles, then take the highest limit from them.
     foreach ($account_roles as $role) {
       $temp = (isset($entity_limits[$role])) ? $entity_limits[$role] : NULL;
-      $role_limit = ($temp > $role_limit) ? $temp : $role_limit;
+      $limit = ($temp > $limit) ? $temp : $limit;
     }
 
-    // Check for unlimited limit access.
-    if ($role_limit === EntityLimitPluginInterface::entityLimitUnlimited) {
-      return $access;
-    }
-
-    if ($role_limit !== 0) {
-      $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
-      $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
-      $query
-        ->condition('uid', $account->id());
-      $count = count($query->execute());
-      $access = $count >= $role_limit ? FALSE : $access;
-    }
-
-    return $access;
+    return $limit;
   }
 
 }

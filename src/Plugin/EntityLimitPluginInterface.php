@@ -13,13 +13,7 @@ use Drupal\entity_limit\Entity\EntityLimit;
 interface EntityLimitPluginInterface extends PluginFormInterface, PluginInspectionInterface {
 
   /**
-   * @var int
-   *   Unilimited limit option value.
-   */
-  const entityLimitUnlimited = -1;
-
-  /**
-   * Validate account has access based on entity_limit.
+   * Get applicable limit count for account based on entity_limit.
    *
    * @param \Drupal\Core\Session\AccountInterface $account
    *   Logged in User Account.
@@ -28,6 +22,6 @@ interface EntityLimitPluginInterface extends PluginFormInterface, PluginInspecti
    *
    * @return mixed
    */
-  public function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit);
+  public function getLimitCount(AccountInterface $account, EntityLimit $entityLimit);
 
 }

@@ -4,11 +4,19 @@ namespace Drupal\entity_limit;
 
 use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\entity_limit\Entity\EntityLimit;
 
 /**
  * Provide handler for all entity limit usage functions.
  */
 class EntityLimitInspector {
+
+  /**
+   * @var int
+   *   Unilimited limit option value.
+   */
+  const entityLimitUnlimited = -1;
 
   protected $entityManager;
 
@@ -32,48 +40,30 @@ class EntityLimitInspector {
    *   Entity type.
    * @param string $entity_bundle
    *   Bundle name.
-   * @param object $account
-   *   User object.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   User account object.
    *
    * @return bool
    *   True if limit has reached otherwise false.
    */
-  public function checkEntityLimits($entity_type_id, $entity_bundle, $account = NULL) {
+  public function checkEntityLimits($entity_type_id, $entity_bundle, AccountInterface $account) {
     $access = TRUE;
-    $applicable_limits = $this->getApplicableLimits($entity_type_id, $entity_bundle);
+    $applicable_limit = $this->getApplicableLimit($entity_type_id, $entity_bundle, $account);
+    if (!empty($applicable_limit)) {
+      switch ($applicable_limit['limit']) {
+        case self::entityLimitUnlimited:
+          // Unlimited Access.
+          break;
 
-    if (!empty($applicable_limits)) {
-      $plugin_access = [];
-      // For each applicable limits check if account passes the criterion.
-      foreach ($applicable_limits as $key => $entity_limit) {
-        $plugin_id = $entity_limit->getPlugin();
-        $plugin = $this->pluginManager->createInstance($plugin_id, ['of' => 'configuration values']);
-        $limit = $plugin->validateAccountLimit($account, $entity_limit);
-        $plugin_priority = $plugin->getPriority();
-        if (is_array($plugin_access[$entity_limit->get('weight')])) {
-          $plugin_access[$entity_limit->get('weight')][$plugin_priority][$key] = $limit;
-        }
-        else {
-          $plugin_access[$entity_limit->get('weight')] = [];
-          $plugin_access[$entity_limit->get('weight')][$plugin_priority] = [];
-          $plugin_access[$entity_limit->get('weight')][$plugin_priority][$key] = $limit;
-        }
+        default:
+          // Limit is applicable now we need to compare.
+          if ($account) {
+            $access = $this->compareAccountLimit($account, $applicable_limit['entity_limit'], $applicable_limit['limit']);
+          }
+          break;
       }
-
-      // Sort in the order of entity limit priority.
-      ksort($plugin_access);
-
-      // There can be two cases
-      // 1. Multiple applicable limits of different priority. In this case
-      // we will give access to the top priority item.
-      // 2. Multiple applicable limits of same priority. In this case we will
-      // goto plugin priority.
-      // 2.1. If there are multiple limits of same plugin priority & entity
-      // limit priority then we consider the height limit value from the set.
-      $priority_limit = reset($plugin_access);
-      ksort($priority_limit);
-      $access = in_array(TRUE, reset($priority_limit)) ? TRUE : FALSE;
     }
+
     return $access;
   }
 
@@ -87,7 +77,6 @@ class EntityLimitInspector {
    *   The entity limits.
    */
   public function getEntityLimits($entity_type_id) {
-    $configurations = [];
     $configStorage = $this->entityManager->getStorage('entity_limit');
     $configurations = $configStorage->loadByProperties([
       'entity_type' => $entity_type_id,
@@ -97,25 +86,73 @@ class EntityLimitInspector {
   }
 
   /**
-   * Gets the bundle limits.
+   * Get applicable limit count and entity_limit object.
    *
    * @param string $entity_type_id
-   *   The entity type identifier.
+   *   Entity type.
    * @param string $entity_bundle
-   *   The entity bundle.
+   *   Entity bundle.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   User account object.
    *
-   * @return array
-   *   The bundle limits.
+   * @return array|mixed
+   *   Array with limit_count and entity_limit object.
    */
-  public function getApplicableLimits($entity_type_id, $entity_bundle) {
+  public function getApplicableLimit($entity_type_id, $entity_bundle, AccountInterface $account) {
     $entity_limits = $this->getEntityLimits($entity_type_id);
     $applicable_limits = [];
+
     foreach ($entity_limits as $key => $entity_limit) {
+      // We need to verify entity_limit bundle and plugin applicability.
+      $entityBundleFlag = FALSE;
+
       if (in_array($entity_bundle, $entity_limit->getEntityLimitBundles())) {
-        $applicable_limits[$key] = $entity_limit;
+        $entityBundleFlag = TRUE;
+      }
+
+      if ($entityBundleFlag) {
+        $plugin_id = $entity_limit->getPlugin();
+        $plugin = $this->pluginManager->createInstance($plugin_id, ['of' => 'configuration values']);
+        $priority = $plugin->getPriority();
+        $applicable_limits[$priority] = [
+          'limit' => $plugin->getLimitCount($account, $entity_limit),
+          'entity_limit' => $entity_limit,
+        ];
       }
     }
-    return $applicable_limits;
+
+    // Based on priority get final limit.
+    ksort($applicable_limits);
+    $applicable_limits = reset($applicable_limits);
+
+    return !empty($applicable_limits) ? $applicable_limits : [];
+  }
+
+  /**
+   * Compare applicable limit with availability.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   User account object.
+   * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
+   *   Entity Limit object.
+   * @param $limit
+   *   Applicable limit.
+   *
+   * @return bool
+   *   Access.
+   */
+  public function compareAccountLimit(AccountInterface $account, EntityLimit $entityLimit, $limit) {
+    $access = TRUE;
+    $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
+    $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
+    $query
+      ->condition('uid', $account->id());
+    $count = count($query->execute());
+    if ($count >= (int) $limit) {
+      $access = FALSE;
+    }
+
+    return $access;
   }
 
 }
