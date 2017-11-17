@@ -155,7 +155,6 @@ class UserLimit extends EntityLimitPluginBase {
       if ($count >= (int) $limit) {
         $access = FALSE;
       }
-      return $access;
     }
 
     return $access;
