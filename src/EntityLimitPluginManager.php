@@ -19,7 +19,6 @@ class EntityLimitPluginManager extends DefaultPluginManager {
     parent::__construct('Plugin/EntityLimit', $namespaces, $module_handler, 'Drupal\entity_limit\Plugin\EntityLimitPluginInterface', 'Drupal\entity_limit\Annotation\EntityLimit');
     $this->alterInfo('entity_limit_info');
     $this->setCacheBackend($cache_backend, 'entity_limit_info_plugins');
-    $this->factory = new DefaultFactory($this->getDiscovery());
   }
 
 }
