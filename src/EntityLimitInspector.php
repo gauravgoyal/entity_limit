@@ -33,23 +33,6 @@ class EntityLimitInspector {
   }
 
   /**
-   * Check whether user has crossed the entity limits.
-   *
-   * @param string $entity_type_id
-   *   Entity type.
-   * @param string $entity_bundle
-   *   Bundle name.
-   *
-   * @return bool
-   *   True if limit has reached otherwise false.
-   */
-  public function checkEntityLimitAccess($entity_type_id, $entity_bundle) {
-    $access = TRUE;
-    $access = $this->getApplicableLimit($entity_type_id, $entity_bundle);
-    return $access;
-  }
-
-  /**
    * Gets the entity limits.
    *
    * @param string $entity_type_id
@@ -68,7 +51,7 @@ class EntityLimitInspector {
   }
 
   /**
-   * Get applicable limit count and entity_limit object.
+   * Check whether user has crossed the entity limits.
    *
    * @param string $entity_type_id
    *   Entity type.
@@ -78,7 +61,7 @@ class EntityLimitInspector {
    * @return array|mixed
    *   Array with limit_count and entity_limit object.
    */
-  public function getApplicableLimit($entity_type_id, $entity_bundle) {
+  public function checkEntityLimitAccess($entity_type_id, $entity_bundle) {
     $entity_limits = $this->getBundleLimits($entity_type_id, $entity_bundle);
     $applicable_limits = [];
     $plugin = [];
@@ -130,6 +113,7 @@ class EntityLimitInspector {
    *   Access.
    */
   public function compareLimits(array $applicable_limits, $plugin) {
+    $access = TRUE;
     if (!empty($applicable_limits)) {
       if (array_key_exists(self::ENTITYLIMITNOLIMIT, $applicable_limits)) {
         $access = TRUE;

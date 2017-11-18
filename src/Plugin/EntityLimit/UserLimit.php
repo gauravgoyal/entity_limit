@@ -2,10 +2,13 @@
 
 namespace Drupal\entity_limit\Plugin\EntityLimit;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\user\Entity\User;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
 use Drupal\entity_limit\Entity\EntityLimit;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Session\AccountInterface;
 
 /**
  * Provides a plugin to limit entities per user.
@@ -16,7 +19,43 @@ use Drupal\entity_limit\Entity\EntityLimit;
  *   priority = 0,
  * )
  */
-class UserLimit extends EntityLimitPluginBase {
+class UserLimit extends EntityLimitPluginBase implements ContainerFactoryPluginInterface {
+
+  /**
+   * @var \Drupal\Core\Session\AccountInterface $account
+   *   User Account object.
+   */
+  protected $account;
+
+  /**
+   * UserLimit constructor.
+   *
+   * @param array $configuration
+   *   Configuration array.
+   * @param string $plugin_id
+   *   Plugin Id.
+   * @param mixed $plugin_definition
+   *   Plugin Definition.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   User Account.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, AccountInterface $account) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->account = $account;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    // TODO: Implement create() method.
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('current_user')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -136,12 +175,20 @@ class UserLimit extends EntityLimitPluginBase {
    *
    * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
    *   Entity Limit Object.
+   * @param \Drupal\Core\Session\AccountInterface|NULL $account
+   *   Optional User account.
    *
    * @return int
    *   limit applicable to current user.
    */
-  public function getLimitCount(EntityLimit $entityLimit) {
-    $uid = \Drupal::currentUser()->id();
+  public function getLimitCount(EntityLimit $entityLimit, AccountInterface $account = NULL) {
+    if ($account) {
+      $uid = $account->id();
+    }
+    else {
+      $uid = $this->account->id();
+    }
+
     $entity_limits = [];
     foreach ($entityLimit->get('limits') as $limit) {
       $entity_limits[$limit['id']] = $limit['limit'];
@@ -156,12 +203,20 @@ class UserLimit extends EntityLimitPluginBase {
    *   The limit.
    * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
    *   The entity limit.
+   * @param \Drupal\Core\Session\AccountInterface|NULL $account
+   *   Optional User account.
    *
    * @return bool
    *   TRUE|FALSE for access.
    */
-  public function checkAccess($limit, EntityLimit $entityLimit) {
-    $uid = \Drupal::currentUser()->id();
+  public function checkAccess($limit, EntityLimit $entityLimit, AccountInterface $account = NULL) {
+    if ($account) {
+      $uid = $account->id();
+    }
+    else {
+      $uid = $this->account->id();
+    }
+
     $access = TRUE;
     $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
     $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
