@@ -10,6 +10,13 @@ use Drupal\Core\Entity\EntityManagerInterface;
  */
 class EntityLimitInspector {
 
+  /**
+   * Unilimited limit option value.
+   *
+   * @var int
+   */
+  const ENTITYLIMITNOLIMIT = -1;
+
   protected $entityManager;
 
   protected $pluginManager;
@@ -32,48 +39,13 @@ class EntityLimitInspector {
    *   Entity type.
    * @param string $entity_bundle
    *   Bundle name.
-   * @param object $account
-   *   User object.
    *
    * @return bool
    *   True if limit has reached otherwise false.
    */
-  public function checkEntityLimits($entity_type_id, $entity_bundle, $account = NULL) {
+  public function checkEntityLimitAccess($entity_type_id, $entity_bundle) {
     $access = TRUE;
-    $applicable_limits = $this->getApplicableLimits($entity_type_id, $entity_bundle);
-
-    if (!empty($applicable_limits)) {
-      $plugin_access = [];
-      // For each applicable limits check if account passes the criterion.
-      foreach ($applicable_limits as $key => $entity_limit) {
-        $plugin_id = $entity_limit->getPlugin();
-        $plugin = $this->pluginManager->createInstance($plugin_id, ['of' => 'configuration values']);
-        $limit = $plugin->validateAccountLimit($account, $entity_limit);
-        $plugin_priority = $plugin->getPriority();
-        if (is_array($plugin_access[$entity_limit->get('weight')])) {
-          $plugin_access[$entity_limit->get('weight')][$plugin_priority][$key] = $limit;
-        }
-        else {
-          $plugin_access[$entity_limit->get('weight')] = [];
-          $plugin_access[$entity_limit->get('weight')][$plugin_priority] = [];
-          $plugin_access[$entity_limit->get('weight')][$plugin_priority][$key] = $limit;
-        }
-      }
-
-      // Sort in the order of entity limit priority.
-      ksort($plugin_access);
-
-      // There can be two cases
-      // 1. Multiple applicable limits of different priority. In this case
-      // we will give access to the top priority item.
-      // 2. Multiple applicable limits of same priority. In this case we will
-      // goto plugin priority.
-      // 2.1. If there are multiple limits of same plugin priority & entity
-      // limit priority then we consider the height limit value from the set.
-      $priority_limit = reset($plugin_access);
-      ksort($priority_limit);
-      $access = in_array(TRUE, reset($priority_limit)) ? TRUE : FALSE;
-    }
+    $access = $this->getApplicableLimit($entity_type_id, $entity_bundle);
     return $access;
   }
 
@@ -87,13 +59,88 @@ class EntityLimitInspector {
    *   The entity limits.
    */
   public function getEntityLimits($entity_type_id) {
-    $configurations = [];
     $configStorage = $this->entityManager->getStorage('entity_limit');
     $configurations = $configStorage->loadByProperties([
       'entity_type' => $entity_type_id,
     ]
     );
     return $configurations;
+  }
+
+  /**
+   * Get applicable limit count and entity_limit object.
+   *
+   * @param string $entity_type_id
+   *   Entity type.
+   * @param string $entity_bundle
+   *   Entity bundle.
+   *
+   * @return array|mixed
+   *   Array with limit_count and entity_limit object.
+   */
+  public function getApplicableLimit($entity_type_id, $entity_bundle) {
+    $entity_limits = $this->getBundleLimits($entity_type_id, $entity_bundle);
+    $applicable_limits = [];
+    $plugin = [];
+
+    if (!empty($entity_limits)) {
+      foreach ($entity_limits as $entity_limit) {
+        $plugin_id = $entity_limit->getPlugin();
+        if (!isset($plugin[$plugin_id])) {
+          $plugin[$plugin_id] = $this->pluginManager->createInstance($plugin_id, ['of' => 'configuration values']);
+        }
+        $plugin_priority = $plugin[$plugin_id]->getPriority();
+        $weight = $entity_limit->get('weight');
+        $limit_count = $plugin[$plugin_id]->getLimitCount($entity_limit);
+        if (isset($applicable_limits[$weight]) && is_array($applicable_limits[$weight])) {
+          $applicable_limits[$weight][$plugin_priority][$limit_count] = $entity_limit;
+        }
+        else {
+          $applicable_limits[$weight] = [];
+          $applicable_limits[$weight][$plugin_priority] = [];
+          $applicable_limits[$weight][$plugin_priority][$limit_count] = $entity_limit;
+        }
+      }
+
+      // Sort in the order of entity limit priority.
+      ksort($applicable_limits);
+      // There can be two cases
+      // 1. Multiple applicable limits of different priority. In this case
+      // we will give access to the top priority item.
+      // 2. Multiple applicable limits of same priority. In this case we will
+      // goto plugin priority.
+      // 2.1. If there are multiple limits of same plugin priority & entity
+      // limit priority then we consider the height limit value from the set.
+      $applicable_limits = reset($applicable_limits);
+      ksort($applicable_limits);
+      $applicable_limits = reset($applicable_limits);
+    }
+
+    $access = !empty($applicable_limits) ? $this->compareLimits($applicable_limits, $plugin) : TRUE;
+    return $access;
+  }
+
+  /**
+   * Compare applicable limit with availability.
+   *
+   * @param array $applicable_limits
+   *   Array of Entity Limit objects.
+   *
+   * @return bool
+   *   Access.
+   */
+  public function compareLimits(array $applicable_limits, $plugin) {
+    if (!empty($applicable_limits)) {
+      if (array_key_exists(self::ENTITYLIMITNOLIMIT, $applicable_limits)) {
+        $access = TRUE;
+      }
+      else {
+        $max_limit = max(array_keys($applicable_limits));
+        $plugin_type = $applicable_limits[$max_limit]->getPlugin();
+        $access = $plugin[$plugin_type]->checkAccess($max_limit, $applicable_limits[$max_limit]);
+      }
+    }
+    return $access;
   }
 
   /**
@@ -107,7 +154,7 @@ class EntityLimitInspector {
    * @return array
    *   The bundle limits.
    */
-  public function getApplicableLimits($entity_type_id, $entity_bundle) {
+  public function getBundleLimits($entity_type_id, $entity_bundle) {
     $entity_limits = $this->getEntityLimits($entity_type_id);
     $applicable_limits = [];
     foreach ($entity_limits as $key => $entity_limit) {

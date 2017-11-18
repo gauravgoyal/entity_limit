@@ -3,7 +3,6 @@
 namespace Drupal\entity_limit\Plugin\EntityLimit;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_limit\Entity\EntityLimit;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
 
@@ -58,7 +57,7 @@ class RoleLimit extends EntityLimitPluginBase {
 
       $form['limits'][$i]['limit'] = array(
         '#type' => 'textfield',
-        '#description' => $this->t('Add limit applicable for this user'),
+        '#description' => $this->t('Add limit applicable for this user. Use -1 for unlimited limits.'),
         '#size' => 60,
         '#required' => TRUE,
         '#default_value' => isset($limits[$i]['limit']) ? $limits[$i]['limit'] : '',
@@ -137,32 +136,53 @@ class RoleLimit extends EntityLimitPluginBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Get applicable limit count for account based on entity_limit.
+   *
+   * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
+   *   Entity Limit Object.
+   *
+   * @return mixed
+   *   Limit according to role.
    */
-  public function validateAccountLimit(AccountInterface $account, EntityLimit $entityLimit) {
-    $account_roles = $account->getRoles();
+  public function getLimitCount(EntityLimit $entityLimit) {
+    $account_roles = \Drupal::currentUser()->getRoles();
     $entity_limits = [];
     foreach ($entityLimit->get('limits') as $limit) {
       $entity_limits[$limit['id']] = $limit['limit'];
     }
 
     // Get Lowest Limit.
-    $role_limit = 0;
-    $access = TRUE;
+    $limit = 0;
 
     // If a user has multiple roles, then take the highest limit from them.
     foreach ($account_roles as $role) {
       $temp = (isset($entity_limits[$role])) ? $entity_limits[$role] : NULL;
-      $role_limit = ($temp > $role_limit) ? $temp : $role_limit;
+      $limit = ($temp > $limit) ? $temp : $limit;
     }
 
-    if ($role_limit !== 0) {
-      $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
-      $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
-      $query
-        ->condition('uid', $account->id());
-      $count = count($query->execute());
-      $access = $count >= $role_limit ? FALSE : $access;
+    return $limit;
+  }
+
+  /**
+   * Compare limits and provide access.
+   *
+   * @param int $limit
+   *   The limit.
+   * @param \Drupal\entity_limit\Entity\EntityLimit $entityLimit
+   *   The entity limit.
+   *
+   * @return bool
+   *   TRUE|FALSE for access.
+   */
+  public function checkAccess($limit, EntityLimit $entityLimit) {
+    $uid = \Drupal::currentUser()->id();
+    $access = TRUE;
+    $query = \Drupal::entityQuery($entityLimit->getEntityLimitType());
+    $query->condition('type', $entityLimit->getEntityLimitBundles(), 'IN');
+    $query->condition('uid', $uid);
+    $count = count($query->execute());
+    if ($count >= (int) $limit) {
+      $access = FALSE;
     }
     return $access;
   }

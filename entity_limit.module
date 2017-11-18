@@ -28,7 +28,7 @@ function entity_limit_help($route_name, RouteMatchInterface $route_match) {
 function entity_limit_entity_create_access(AccountInterface $account, array $context, $entity_bundle) {
   $result = TRUE;
   if (!empty($context['entity_type_id'])) {
-    $result = \Drupal::service('entity_limit.inspector')->checkEntityLimits(
+    $result = \Drupal::service('entity_limit.inspector')->checkEntityLimitAccess(
       $context['entity_type_id'],
       $entity_bundle,
       $account
