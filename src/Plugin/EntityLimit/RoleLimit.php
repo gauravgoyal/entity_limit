@@ -5,6 +5,7 @@ namespace Drupal\entity_limit\Plugin\EntityLimit;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Session\AccountProxy;
 use Drupal\entity_limit\Entity\EntityLimit;
 use Drupal\entity_limit\EntityLimitInspector;
 use Drupal\entity_limit\Plugin\EntityLimitPluginBase;
@@ -36,10 +37,10 @@ class RoleLimit extends EntityLimitPluginBase implements ContainerFactoryPluginI
    *   Plugin Id.
    * @param mixed $plugin_definition
    *   Plugin Definition.
-   * @param \Drupal\Core\Session\AccountInterface $account
+   * @param \Drupal\Core\Session\AccountProxy $account
    *   User Account.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, AccountInterface $account) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, AccountProxy $account) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->account = $account;
   }
@@ -48,7 +49,6 @@ class RoleLimit extends EntityLimitPluginBase implements ContainerFactoryPluginI
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    // TODO: Implement create() method.
     return new static(
       $configuration,
       $plugin_id,
